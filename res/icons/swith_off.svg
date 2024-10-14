@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="20" height="10" version="1.1" viewBox="0 0 20 10" xmlns="http://www.w3.org/2000/svg">
+ <g stroke-linecap="round" stroke-linejoin="round">
+  <rect width="20" height="10" ry="5" fill="#161616" stroke-width="4"/>
+  <circle cx="5.0563" cy="5.0563" r="4.6562" fill="#111" stop-color="#000000" stroke-width="3.725" style="-inkscape-stroke:none;font-variation-settings:normal"/>
+  <circle cx="5" cy="5" r="4.6562" fill="#262626" stop-color="#000000" stroke-width="3.725" style="-inkscape-stroke:none;font-variation-settings:normal"/>
+ </g>
+</svg>

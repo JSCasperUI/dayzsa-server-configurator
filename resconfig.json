@@ -1,0 +1,12 @@
+{
+  "resource_folder": "./res",
+  "name": "RRecyclerView",
+  "id_file": "./src/R.ts",
+  "resource_file": "./assets/res.html",
+  "style_file": "./assets/app.css",
+  "resources": [
+    "./dev/core/",
+    "./dev/recyclerview/",
+    "./future_widgets/layout_fragment/"
+  ]
+}

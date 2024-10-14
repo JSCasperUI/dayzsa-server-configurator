@@ -1,0 +1,32 @@
+{
+  "name": "@casperui/layoutfragment",
+  "version": "1.0.0",
+  "scripts": {
+    "generate-barrels": "barrelsby --structure filesystem --delete -d src",
+    "build": "npm run generate-barrels && tsc && tsc-alias",
+    "release_pack": "npm run generate-barrels && tsc && tsc-alias && npm pack",
+    "resources": "node dev/core/resmaker/src/main.js --include_path"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "*.map"
+  ],
+  "exports": {
+    "./*": "./dist/*"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/*"
+      ]
+    }
+  },
+  "devDependencies": {
+    "barrelsby": "^2.8.1",
+    "tsc-alias": "^1.8.10",
+    "typescript": "^5.6.2"
+  }
+}

@@ -1,0 +1,290 @@
+:root {
+    /* Основные цвета */
+    --primary-color: #007aff; /* Apple Blue */
+    --secondary-color: #8e8e93; /* Light Gray */
+    --accent-color: #ff2d55; /* Red Accent */
+    --success-color: #34c759; /* Green Success */
+    --warning-color: #ffcc00; /* Yellow Warning */
+    --danger-color: #ff3b30; /* Red Danger */
+    --info-color: #5ac8fa; /* Light Blue Info */
+
+    /* Цвета текста */
+    --text-color-primary: #000000; /* Основной цвет текста */
+    --text-color-secondary: #3c3c434d; /* Вторичный текст (с прозрачностью) */
+    --text-color-tertiary: #3c3c4340; /* Третичный текст (с большей прозрачностью) */
+    --text-color-muted: #8e8e93; /* Мутированный текст */
+
+    /* Цвета фона */
+    --background-color: #ffffff; /* Белый фон */
+    --background-color-secondary: #f2f2f7; /* Светло-серый фон */
+    --background-color-muted: #e5e5ea; /* Мутированный фон */
+
+    /* Цвета границ */
+    --border-color: #d1d1d6; /* Светло-серая граница */
+    --border-color-strong: #c7c7cc; /* Более сильная серая граница */
+
+    /* Тени */
+    --box-shadow-color: rgba(0, 0, 0, 0.12); /* Тени для элементов */
+    --box-shadow-color-hover: rgba(0, 0, 0, 0.25); /* Тень при наведении */
+
+    /* Цвета ссылок */
+    --link-color: #007aff; /* Ссылка */
+    --link-color-hover: #0056d2; /* Цвет при наведении */
+
+    /* Цвета полей ввода */
+    --input-background-color: #ffffff; /* Белый фон для инпутов */
+    --input-border-color: #d1d1d6; /* Граница инпутов */
+    --input-text-color: #000000; /* Цвет текста в инпутах */
+    --input-placeholder-color: #8e8e93; /* Цвет плейсхолдера */
+
+    /* Цвета кнопок */
+    --button-primary-background-color: var(--primary-color); /* Кнопка Primary */
+    --button-primary-text-color: #ffffff; /* Белый текст на кнопке Primary */
+    --button-secondary-background-color: #f2f2f7; /* Кнопка Secondary */
+    --button-secondary-text-color: var(--primary-color); /* Синий текст на кнопке Secondary */
+
+    /* Цвета для состояний элементов */
+    --hover-background-color: rgba(118, 118, 128, 0.12); /* Фон при наведении */
+    --active-background-color: rgba(118, 118, 128, 0.24); /* Фон при активном состоянии */
+
+    /* Цвета для заголовков */
+    --heading-color-primary: #000000; /* Основной заголовок */
+    --heading-color-secondary: #3c3c434d; /* Вторичный заголовок */
+
+    /* Оверлей */
+    --overlay-color: rgba(0, 0, 0, 0.4); /* Оверлей */
+
+    /* Disabled цвета */
+    --disabled-background-color: #d1d1d6; /* Фон для отключённых элементов */
+    --disabled-text-color: #aeaeb2; /* Текст для отключённых элементов */
+
+
+    --primary-fill-color: rgba(120, 120, 128, 0.20); /* Основной цвет заливки (Dark) */
+    --secondary-fill-color: rgba(120, 120, 128, 0.16); /* Вторичный цвет заливки (Dark) */
+    --tertiary-fill-color: rgba(120, 120, 128, 0.12); /* Третичный цвет заливки (Dark) */
+    --quaternary-fill-color: rgba(120, 120, 128, 0.08); /* Четвертичный цвет заливки (Dark) */
+
+
+    --system-black: #000000;
+    --system-white: #ffffff;
+    --system-gray: #8e8e93;
+    --system-gray2: #aeaeb2;
+    --system-gray3: #c7c7cc;
+    --system-red: #ff3b30;
+    --system-blue: #007aff;
+    --system-green: #34c759;
+    --system-orange: #ff9500;
+    --system-yellow: #ffcc00;
+    --system-purple: #af52de;
+    --system-teal: #5ac8fa;
+    --system-pink: #ff2d55;
+}
+
+[data-theme="dark"] {
+    /* Основные цвета */
+    --primary-color: #0a84ff; /* Apple Blue (Dark) */
+    --secondary-color: #8e8e93; /* Gray */
+    --accent-color: #ff375f; /* Red Accent (Dark) */
+    --success-color: #30d158; /* Green Success (Dark) */
+    --warning-color: #ffd60a; /* Yellow Warning (Dark) */
+    --danger-color: #ff453a; /* Red Danger (Dark) */
+    --info-color: #64d2ff; /* Light Blue Info (Dark) */
+
+    /* Цвета текста */
+    --text-color-primary: #ffffff; /* Основной текст */
+    --text-color-secondary: #ebebf54d; /* Вторичный текст с прозрачностью */
+    --text-color-tertiary: #ebebf540; /* Третичный текст с большей прозрачностью */
+    --text-color-muted: #8e8e93; /* Мутированный текст */
+
+    /* Цвета фона */
+    --background-color: #161616; /* Черный фон */
+    --background-color-secondary: #1c1c1e; /* Тёмно-серый фон */
+    --background-color-muted: #2c2c2e; /* Более светлый серый фон */
+
+    /* Цвета границ */
+    --border-color: hsl(240 3% 13% / 1); /* Серая граница */
+    --border-color-strong: #48484a; /* Более сильная серая граница */
+
+    /* Тени */
+    --box-shadow-color: rgba(0, 0, 0, 0.75); /* Тени для тёмных элементов */
+    --box-shadow-color-hover: rgba(255, 255, 255, 0.1); /* Тень при наведении для тёмных элементов */
+
+    /* Цвета ссылок */
+    --link-color: #0a84ff; /* Ссылка (Dark) */
+    --link-color-hover: #0066cc; /* Цвет при наведении на ссылку */
+
+    /* Цвета полей ввода */
+    --input-background-color: hsl(240 3% 9% / 1); /* Тёмный фон для инпутов */
+    --input-border-color: hsl(0 0% 13% / 1); /* Граница инпутов */
+    --input-text-color: #ffffff; /* Цвет текста в инпутах */
+    --input-placeholder-color: #8e8e93; /* Цвет плейсхолдера */
+
+    /* Цвета кнопок */
+    --button-primary-background-color: var(--primary-color); /* Основная кнопка (Dark) */
+    --button-primary-text-color: #ffffff; /* Белый текст на кнопке */
+    --button-secondary-background-color: #2c2c2e; /* Кнопка Secondary */
+    --button-secondary-text-color: var(--primary-color); /* Текст на Secondary кнопке */
+
+    /* Цвета для состояний элементов */
+    --hover-background-color: rgba(118, 118, 128, 0.12); /* Фон при наведении (Dark) */
+    --active-background-color: rgba(118, 118, 128, 0.24); /* Активный фон (Dark) */
+
+    /* Цвета для заголовков */
+    --heading-color-primary: #ffffff; /* Основной заголовок */
+    --heading-color-secondary: #ebebf54d; /* Вторичный заголовок */
+
+    /* Оверлей */
+    --overlay-color: rgba(0, 0, 0, 0.7); /* Оверлей для тёмной темы */
+
+    /* Disabled цвета */
+    --disabled-background-color: #48484a; /* Фон для отключённых элементов */
+    --disabled-text-color: #6e6e73; /* Текст для отключённых элементов */
+    --primary-fill-color: rgba(120, 120, 128, 0.36); /* Основной цвет заливки (Dark) */
+    --secondary-fill-color: rgba(120, 120, 128, 0.32); /* Вторичный цвет заливки (Dark) */
+    --tertiary-fill-color: rgba(120, 120, 128, 0.24); /* Третичный цвет заливки (Dark) */
+    --quaternary-fill-color: rgba(120, 120, 128, 0.18); /* Четвертичный цвет заливки (Dark) */
+    --system-black: #ffffff; /* Заменяется на белый для тёмной темы */
+    --system-white: #000000; /* Заменяется на чёрный для тёмной темы */
+    --system-gray: #8e8e93;
+    --system-gray2: #636366;
+    --system-gray3: #48484a;
+    --system-red: #ff453a;
+    --system-blue: #0a84ff;
+    --system-green: #32d74b;
+    --system-orange: #ff9f0a;
+    --system-yellow: #ffd60a;
+    --system-purple: #bf5af2;
+    --system-teal: #64d2ff;
+    --system-pink: #ff375f;
+}
+
+.primary-bg {
+    background-color: var(--primary-fill-color);
+}
+
+.secondary-bg {
+    background-color: var(--secondary-fill-color);
+}
+
+.tertiary-bg {
+    background-color: var(--tertiary-fill-color);
+}
+
+.quaternary-bg {
+    background-color: var(--quaternary-fill-color);
+}
+
+body {
+    font-family: "ui";
+    background-color: var(--background-color);
+    color: var(--text-color-primary);
+    padding: 0;
+    margin:0;
+}
+i {
+    display: inline-block;
+}
+
+i > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+
+.wrapper {
+    align-items: stretch;
+    display: flex;
+    width: 100%;
+}
+.fixed_bottom {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    z-index: 1030;
+}
+.main {
+    /* padding-bottom: 36px; */
+    /* padding-left: 4px; */
+    /* padding-right: 4px; */
+border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+    display: block;
+    /* height: 100vh; */
+    min-width: 0;
+    overflow: hidden;
+    transition: margin-left .35s ease-in-out, left .35s ease-in-out, margin-right .35s ease-in-out, right .35s ease-in-out;
+    width: 100%;
+}
+
+.el_menu {
+    display: flex;
+    height: 100%;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.elm_item {
+    min-width: 100px;
+    text-align: center;
+    background-color: var(--background-color-secondary);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    padding: 2px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-color-muted);
+}
+
+.elm_item:hover {
+    background-color: var(--background-color-muted);
+}
+
+.elm_item.active {
+    color: var(--text-color-primary);
+    background-color: var(--background-color-muted);
+}
+.company-name {
+    font-size: 17px;
+    padding: 7px 19px;
+    color: #ffffff;
+    display: block;
+    float: left;
+}
+.fixed-top {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1030;
+}
+.nan-header {
+    height: 37px;
+    background-color: var(--background-color);
+    /* border-bottom: 1px solid var(--border-color); */
+}
+.bottom_panel {
+    height: 32px;
+    background: hsl(240 2% 13% / 1);
+    /* border-top: 1px solid #272727; */
+    padding: 0 8px;
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: row;
+    align-items: center;
+    /* background: hsl(240deg 3.23% 12.16%); */
+}
+.main_container{
+    display: grid;
+    width: 100%;
+    flex-direction: column;
+    height: 100vh;
+    grid-template-rows: 40px auto 32px;
+}
+.center_panel{
+    height: 100%;
+    overflow: hidden;
+    width: 100%;
+}

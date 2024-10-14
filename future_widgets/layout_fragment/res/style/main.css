@@ -1,0 +1,11 @@
+.wg_recyclerview {
+    height: 100%;
+}
+
+.wg_recyclerview > div {
+    position: relative;
+}
+
+.wg_recyclerview > div > * {
+    position: absolute;
+}

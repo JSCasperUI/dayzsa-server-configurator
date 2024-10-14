@@ -1,2 +1,2 @@
 # dayzsa-server-configurator
-DAYZ Standalone server configurator. Demo engine JSCasperUI 
+DAYZ Standalone server configurator. Demo engine JSCasperUI.
