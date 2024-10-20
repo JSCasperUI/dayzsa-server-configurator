@@ -70,3 +70,8 @@
     background-color: #FFF;
     left: 0px;
 }
+.split-container-area > .area_content {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}

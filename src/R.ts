@@ -1,7 +1,17 @@
 export const R = {
 id:{
-	fragment_main_content:0,
-	bottom_console:1,
+	select_base_dir:0,
+	select_modding_dir:1,
+	fragment_main_content:2,
+	bottom_console:3,
+	fillContent:4,
+	canvas:5,
+	cords:6,
+	sort:7,
+	text:8,
+	table:9,
+	header:10,
+	list:11,
 
 },
 fonts:{
@@ -23,36 +33,41 @@ icons:{
 	ic_checkbox_on:14,
 	ic_close:15,
 	ic_controller:16,
-	ic_electrical_panel:17,
-	ic_list:18,
-	ic_params:19,
-	ic_radio_off:20,
-	ic_radio_on:21,
-	ic_repeat_off:22,
-	ic_segment:23,
-	lamp_post:24,
-	led:25,
-	map_marker:26,
-	module_cl_1:27,
-	module_cl_2:28,
-	module_cl_3:29,
-	module_cl_4:30,
-	sort:31,
-	sort_down:32,
-	sort_up:33,
-	spinner_loading:34,
-	spinner_round_loading:35,
-	success:36,
-	swith_off:37,
-	swith_on:38,
-	template:39,
+	ic_list:17,
+	ic_params:18,
+	ic_radio_off:19,
+	ic_radio_on:20,
+	ic_repeat_off:21,
+	ic_segment:22,
+	map_marker:23,
+	sort:24,
+	sort_down:25,
+	sort_up:26,
+	spinner_loading:27,
+	spinner_round_loading:28,
+	success:29,
+	swith_off:30,
+	swith_on:31,
+	template:32,
 
 },
 layout:{
-	activityMain:40,
+	activityMain:33,
+area_flags:{
+	main:34,
+
+},
+table:{
+	header_item:35,
+	table_example:36,
+
+},
 
 },
 style:{
+
+},
+values:{
 
 },
 

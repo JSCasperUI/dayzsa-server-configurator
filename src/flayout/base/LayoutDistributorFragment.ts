@@ -1,5 +1,6 @@
 import {LayoutFragment, SPLIT_TYPE} from "@casperui/layoutfragment/widget/LayoutFragment";
 import {RLayoutFragment} from "@casperui/layoutfragment/widget/R";
+import {FragmentDZAreaFlags} from "@dz/views/areaflags/FragmentDZAreaFlags";
 
 
 export  class LayoutDistributorFragment extends LayoutFragment {
@@ -29,11 +30,11 @@ export  class LayoutDistributorFragment extends LayoutFragment {
         let fragment
         //
         if (this.meta){
-            // switch (this.meta.type){
-            //     case "module_list":{
-            //         fragment = new ModuleListFragment(this.getActivity())
-            //         break
-            //     }
+            switch (this.meta.type){
+                case "area_map":{
+                    fragment = new FragmentDZAreaFlags(this.getActivity())
+                    break
+                }
             //     case "lamp_list":{
             //         fragment = new LampListFragment(this.getActivity())
             //         break
@@ -70,8 +71,8 @@ export  class LayoutDistributorFragment extends LayoutFragment {
             //         fragment = new SocketMakerFragment(this.getActivity())
             //         break
             //     }
-            //     default:fragment = new TreeViewFragment(this.getActivity())
-            // }
+                default:fragment = null
+            }
         } else {
             // fragment = new TreeViewFragment(this.getActivity())
         }
