@@ -16,7 +16,11 @@ const TAG_V = '!'
 const TAG_T = '-'
 const TAG_EOF = '\0'
 function isLetterOrDigit(char) {
-    return /^[0-9a-zA-Z]$/.test(char);
+    const code = char.charCodeAt(0);
+    if (code >= 48 && code <= 57) return true;
+    if (code >= 65 && code <= 90) return true;
+    if (code >= 97 && code <= 122) return true;
+    return false;
 }
 function isLetter(char) {
     return /^[a-zA-Z]$/.test(char);
@@ -41,7 +45,7 @@ export interface NTag {
 export class HTMLParser {
     isInScript = false
     currentToken = {type:0xFF.toString(),value:""} as PToken
-    mInput = undefined
+    mInput:string = undefined
     position = -1
     symbol = '\0'
     skipNext = false
@@ -131,12 +135,14 @@ export class HTMLParser {
                     return this.currentToken
                 }
                 case TAG_QSTRING:{
-                    let out = ""
+                    // let out = ""
+                    let start = this.position+1
                     while (this.mNext() && this.symbol !== '"') {
-                        out+=this.symbol
+                        // out+=this.symbol
                     }
+
                     this.currentToken.type = TAG_QSTRING
-                    this.currentToken.value = out.toString()
+                    this.currentToken.value = this.mInput.substring(start,this.position)
                     return this.currentToken
                 }
                 default:{
@@ -144,7 +150,8 @@ export class HTMLParser {
                         continue
                     }
                     if (this.currentToken.type === TAG_CLOSE) {
-                        let out = this.symbol
+                        // let out = this.symbol
+                        let start = this.position
                         var e = 1
                         var p = 0
                         if (isEmptyChar(this.symbol)){
@@ -154,7 +161,7 @@ export class HTMLParser {
                             if (isEmptyChar(this.symbol)){
                                 p++
                             }
-                            out+=this.symbol
+                            // out+=this.symbol
                             e++
                         }
                         if (e === p){
@@ -163,18 +170,20 @@ export class HTMLParser {
                             continue
                         }
                         this.currentToken.type = TAG_STRING
-                        this.currentToken.value = out
+                        this.currentToken.value = this.mInput.substring(start,this.position)
                         this.skipNext = true
                         return this.currentToken
                     }else if (isLetterOrDigit(this.symbol)) {
-                        let out = this.symbol
+                        // let out = this.symbol
+                        let start = this.position
                         while (this.mNext() && (isLetterOrDigit(this.symbol) || this.symbol === '.' || this.symbol === '_' ||this.symbol === '-')) {
-                            out+=this.symbol
+                            // out+=this.symbol
                         }
                         this.currentToken.type = TAG_STRING
-                        this.currentToken.value = out
-                        this.lastTag = out
+                        this.currentToken.value = this.mInput.substring(start,this.position)
+                        // this.lastTag = out
                         this.skipNext = true
+                        // this.position--
                         return this.currentToken
                     } else {
                         continue
@@ -213,15 +222,16 @@ export class HTMLParser {
         return this.fullTag
     }
     parseString() {
-        let out = ""
-        out+=this.currentToken.value
-        if (this.nextToken().type === TAG_COLON ) {
-            out+=this.currentToken.type
-            out+=this.nextToken().value
-        } else {
-            this.skipNextToken = true
-        }
-        return out
+        // let out = ""
+        // out+=this.currentToken.value
+        // if (this.nextToken().type === TAG_COLON ) {
+        //     out+=this.currentToken.type
+        //     out+=this.nextToken().value
+        // } else {
+        //     this.skipNextToken = true
+        // }
+
+        return this.currentToken.value
     }
     parseAttrs() {
         if (this.currentToken.type === TAG_STRING){

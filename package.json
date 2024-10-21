@@ -6,7 +6,8 @@
   "scripts": {
     "build": "webpack --mode production",
     "start": "webpack serve --open",
-    "resources_dev": "node dev/core/resmaker/src/main.js --include_path --watch"
+    "resources_dev": "node dev/core/resmaker/src/main.js --include_path --watch",
+    "resources_test_res": "node dev/core/resmaker/src/main.js --include_path"
   },
   "author": "",
   "license": "ISC",

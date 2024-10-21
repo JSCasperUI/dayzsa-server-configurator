@@ -9,12 +9,68 @@ import {Rect} from "@casperui/core/graphics/Rect";
 import {MainActivity} from "@dz/MainActivity";
 import {AreaFlag} from "@dz/dayz/types/AreaFlag";
 import {DZ_DEFAULT_USAGE_COLORS, DZ_DEFAULT_VALUE_COLORS} from "@dz/dayz/DZDefaultAreaFlags";
+import {FastBlend} from "@dz/dayz/FBlend";
 
+
+function alphaBlend43(src, dest) {
+    const da = dest[3];
+    if (da === 0) {
+        dest[0] = src[0]
+        dest[1] = src[1]
+        dest[2] = src[2]
+        dest[3] = src[3]
+        return;
+    }
+    const sa = src[3];
+    if (sa === 255) {
+        dest[0] = src[0]
+        dest[1] = src[1]
+        dest[2] = src[2]
+        dest[3] = src[3]
+        return;
+    }
+    const sr = src[0];
+    const sg = src[1];
+    const sb = src[2];
+
+
+    const dr = dest[0];
+    const dg = dest[1];
+    const db = dest[2];
+
+
+    let rem = da * (255 - sa) / 255
+    // const rem = ((da * invSa + 128) * 257) >> 16;
+    dest[3] =  sa + (rem >> 8);
+    dest[0] = (sr * sa + dr * rem + 127) >> 8;
+    dest[1] = (sg * sa + dg * rem + 127) >> 8;
+    dest[2] = (sb * sa + db * rem + 127) >> 8;
+
+}
 
 
 function alphaBlend3(src, dest) {
-    const [sr, sg, sb, sa] = src;
-    const [dr, dg, db, da] = dest;
+
+    // const [sr, sg, sb, sa] = src;
+    // const [dr, dg, db, da] = dest;
+    const da = dest[3];
+    if (da === 0) {
+        return src;
+    }
+    const sa = src[3];
+    if (sa === 255) {
+        return src;
+    }
+
+    const sr = src[0];
+    const sg = src[1];
+    const sb = src[2];
+
+
+    const dr = dest[0];
+    const dg = dest[1];
+    const db = dest[2];
+
 
     if (da === 0) {
         return src;
@@ -23,9 +79,7 @@ function alphaBlend3(src, dest) {
         return dest;
     }
 
-    if (sa === 255) {
-        return src;
-    }
+
     const invSa = 255 - sa;
     const outA = sa + ((da * invSa + 127) >> 8);
 
@@ -273,16 +327,16 @@ export class FragmentDZAreaFlags extends JFragment {
         this.mapRect.mBottom = this.mMapSize
 
         this.mWorldSize = area.mMapInfo.worldSize
-
+        this.arabit = null
         this.mAreaBitmap = Bitmap.createBitmap(this.mMapSize, this.mMapSize)
 
 
         // @ts-ignore
-        window.flagsRedraw = (a,b)=>{
+        window.flagsRedraw = (a, b) => {
             this.printAreaFlagsToBitmap(this.mAreaBitmap, a, b)
             this.draw()
         }
-        this.printAreaFlagsToBitmap(this.mAreaBitmap, 0x0, 0xFFFFFF)
+        this.printAreaFlagsToBitmap(this.mAreaBitmap, 0xFF, 0)
         this.draw()
 
     }
@@ -290,62 +344,70 @@ export class FragmentDZAreaFlags extends JFragment {
     printAreaFlagsToBitmap(bitmap: Bitmap, valueFlagsMask: number, usageFlagsMask: number) {
         let wSize = this.mMapSize
 
-        if (!this.arabit){
+        if (!this.arabit) {
             this.arabit = bitmap.getPixels()
         }
 
-        let pixels =  this.arabit.data
+        let pixels = this.arabit.data
         let usageFlagsMaskBitArray = []
         let valueFlagsMaskBitArray = []
 
-        let usageFlagsBitColors = []
-        let valueFlagsBitColors = []
-        let xTime = Date.now()
         for (let i = 0; i < 32; i++) {
             let bit = (1 << i)
             if (usageFlagsMask & bit) {
                 const color = DZ_DEFAULT_USAGE_COLORS[i % DZ_DEFAULT_USAGE_COLORS.length];
-                usageFlagsMaskBitArray.push({bit,color})
-                usageFlagsBitColors.push(Math.log2(bit))
+                usageFlagsMaskBitArray.push({bit, color})
             }
             if (i < 8) {
                 if (valueFlagsMask & bit) {
                     const color = DZ_DEFAULT_VALUE_COLORS[i % DZ_DEFAULT_VALUE_COLORS.length];
-                    valueFlagsMaskBitArray.push({bit,color})
-                    valueFlagsBitColors.push(Math.log2(bit))
+                    valueFlagsMaskBitArray.push({bit, color})
                 }
             }
         }
 
-        let mUsageData = new Uint32Array(this.mAreaFlags.mBuffer.buffer, 20, wSize * wSize);
-        let mValuesData = new Uint8Array(this.mAreaFlags.mBuffer.buffer, 24 + (wSize * wSize * 4), wSize * wSize);
 
-        // let blendedColor = [0, 0, 0, 0];
+        let hw = wSize * wSize
+        let mUsageLength = (hw * this.mAreaFlags.mMapInfo.flagsBitLength) / 32
+        let mValuesLength = (hw * this.mAreaFlags.mMapInfo.valueBitLength) / 32
 
+
+        let mUsageData = new Uint32Array(this.mAreaFlags.mBuffer.buffer, 20, mUsageLength);
+        let mValuesData = new Uint32Array(this.mAreaFlags.mBuffer.buffer, 24 + (mUsageLength * 4), mValuesLength);
+
+        let xTime = Date.now()
+        const valueBitLength = this.mAreaFlags.mMapInfo.valueBitLength
+
+
+        let revOffset = 32-valueBitLength
+        let mask = (1 << valueBitLength) - 1;
+        let blendedColor = [0, 0, 0, 0];
             for (let y = 0; y < wSize; y++) {
-                let yWSize = y * wSize
-                let pixelRowIndex = (wSize * (wSize - 1 - y)) << 2;
+                const yWSize = y * wSize
+                const pixelRowIndex = (wSize * (wSize - 1 - y)) << 2;
                 for (let x = 0; x < wSize; x++) {
                     const index = yWSize + x;
                     const usageFlags = mUsageData[index];
-                    const valueFlags = mValuesData[index ^ 3]// OMG its cool, old ver ->  index - (index % 4) + (3 - (index % 4));
-
+                    const bitPosition = index * valueBitLength;
+                    const valueFlags = (mValuesData[bitPosition >> 5] >> (revOffset - (bitPosition % 32))) & mask;
                     if (usageFlags == 0 && valueFlags == 0) continue
-                    let blendedColor = [0, 0, 0, 0];
+                    blendedColor = [0, 0, 0, 0];
+                    if (valueFlags !== 0 && (valueFlags & valueFlagsMask) != 0) {
+                        for (let flag = 0; flag < valueFlagsMaskBitArray.length; flag++) {
+                            let bc = valueFlagsMaskBitArray[flag]
+                            if ((valueFlags & bc.bit) != 0) {
+                                alphaBlend43(bc.color, blendedColor);
+                            }
+                        }
+                    }
 
                     if (usageFlags !== 0 && (usageFlags & usageFlagsMask) != 0) {
                         for (let flag = 0; flag < usageFlagsMaskBitArray.length; flag++) {
                             let bc = usageFlagsMaskBitArray[flag]
                             if ((usageFlags & bc.bit) != 0) {
-                                blendedColor = alphaBlend3(bc.color, blendedColor);
-                            }
-                        }
-                    }
-                    if (valueFlags !== 0 && (valueFlags & valueFlagsMask) != 0) {
-                        for (let flag = 0; flag < valueFlagsMaskBitArray.length; flag++) {
-                            let bc = valueFlagsMaskBitArray[flag]
-                            if ((valueFlags & bc.bit) != 0) {
-                                blendedColor = alphaBlend3(bc.color, blendedColor);
+                                // blendedColor = alphaBlend3(bc.color, blendedColor);
+                                alphaBlend43(bc.color, blendedColor);
+
                             }
                         }
                     }
@@ -363,4 +425,31 @@ export class FragmentDZAreaFlags extends JFragment {
     }
 
 
+}
+
+function getPixDataX(dataArray, bitLength, pixelIndex) {
+    const bitsPerByte = 8;
+    const bitPosition = pixelIndex * bitLength;
+    const byteIndex = Math.floor(bitPosition / bitsPerByte);
+    const bitOffset = bitPosition % bitsPerByte;
+
+    // Извлекаем текущий байт
+    let currentByte = dataArray[byteIndex];
+
+    // Количество доступных бит в текущем байте
+    let bitsAvailable = bitsPerByte - bitOffset;
+
+    let result;
+
+    if (bitsAvailable >= bitLength) {
+        // Все биты находятся в текущем байте
+        result = (currentByte >> bitOffset) & ((1 << bitLength) - 1);
+    } else {
+        // Биты разбросаны между текущим и следующим байтом
+        let nextByte = dataArray[byteIndex + 1] || 0; // Защита от выхода за пределы массива
+        let combinedBytes = (nextByte << 8) | currentByte; // Объединяем байты
+        result = (combinedBytes >> bitOffset) & ((1 << bitLength) - 1);
+    }
+
+    return result;
 }

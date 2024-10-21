@@ -25,6 +25,7 @@ export const DZ_DEFAULT_VALUE_FLAGS = [
     "Tier4",
     "Unique",
 ]
+
 function argbToComponents(color) {
     const a = (color >>> 24) & 0xff;
     const r = (color >>> 16) & 0xff;
@@ -34,6 +35,46 @@ function argbToComponents(color) {
     return [r, g, b, a];
 }
 
-export const DZ_DEFAULT_USAGE_COLORS = [1220870144, 2018331981, 2605949096, 2336410443, 2999919256, 3244378930, 4280051624, 2026950694, 2612958014, 2338992993, 3429221818, 2015448659, 4278190080, 2612940979, 1960902469, 2035613696].map((itm)=>argbToComponents(itm))
+function argbToComponentsText(color) {
+    const a = (color >>> 24) & 0xff;
+    const r = (color >>> 16) & 0xff;
+    const g = (color >>> 8) & 0xff;
+    const b = color & 0xff;
 
-export const DZ_DEFAULT_VALUE_COLORS = [2041768959,3844369007,3226677759,3857032449,1727266560].map((itm)=>argbToComponents(itm))
+    return `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(2)})`;
+}
+
+function rgbaToComponents(rgba: string) {
+    let out = rgba.substring(5, rgba.length - 1).split(',').map(Number);
+    out[3] = Math.round(out[3] * 255)
+    return out
+}
+
+export const DZ_DEFAULT_USAGE_COLORS = [
+    "rgba(197, 0, 0, 0.58)",
+    "rgba(77, 77, 77, 0.47)",
+    "rgba(83, 160, 168, 0.61)",
+    "rgba(66, 203, 75, 0.55)",
+    "rgba(207, 34, 152, 0.50)",
+    "rgba(97, 75, 50, 0.76)",
+    "rgba(28, 103, 168, 0.70)",
+    "rgba(208, 208, 38, 0.77)",
+    "rgba(190, 147, 62, 0.81)",
+    "rgba(106,51,97,0.74)",
+    "rgba(101, 197, 186, 0.80)",
+    "rgba(33, 78, 83, 0.47)",
+    "rgba(0, 0, 0, 1.00)",
+    "rgba(190, 80, 179, 0.61)",
+    "rgba(224, 255, 69, 0.45)",
+    "rgba(85, 0, 0, 0.47)"
+].map((itm) => rgbaToComponents(itm))
+
+export const DZ_DEFAULT_VALUE_COLORS = [
+    "rgba(178, 235, 255, 0.47)",
+    "rgba(36,106,111,0.67)",
+    "rgba(83,49,255,0.56)",
+    "rgba(229,165,1,0.68)",
+    "rgba(243, 255, 0, 0.60)"
+].map((itm) => rgbaToComponents(itm))
+
+
