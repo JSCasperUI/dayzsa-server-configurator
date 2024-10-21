@@ -132,7 +132,7 @@ export class FragmentDZAreaFlags extends JFragment {
 
     private mCordsTextView: View
 
-    private mAreaBitmap = Bitmap.createBitmap(0, 0)
+    private mAreaBitmap:Bitmap = null
 
     async onCreated() {
         super.onCreated();
@@ -216,6 +216,12 @@ export class FragmentDZAreaFlags extends JFragment {
 
             updateNewScale(zoom)
         });
+        this.canvasView.makeSafeEvent('mousemove', (moveEvent) => {
+            if (this.mAreaBitmap){
+                // this.printAreaFlagsToBitmap(this.mAreaBitmap, 0xFF, 0,new Rect(1500,1500,2000,2000))
+                // this.draw()
+            }
+        })
 
         this.canvasView.makeSafeEvent('mousedown', (event) => {
             this.mapMove.isDragging = true;
@@ -333,17 +339,20 @@ export class FragmentDZAreaFlags extends JFragment {
 
         // @ts-ignore
         window.flagsRedraw = (a, b) => {
-            this.printAreaFlagsToBitmap(this.mAreaBitmap, a, b)
-            this.draw()
+            // this.printAreaFlagsToBitmap(this.mAreaBitmap, a, b)
+            // this.draw()
         }
         this.printAreaFlagsToBitmap(this.mAreaBitmap, 0xFF, 0)
         this.draw()
 
     }
 
-    printAreaFlagsToBitmap(bitmap: Bitmap, valueFlagsMask: number, usageFlagsMask: number) {
+    printAreaFlagsToBitmap(bitmap: Bitmap, valueFlagsMask: number, usageFlagsMask: number,clip?:Rect) {
         let wSize = this.mMapSize
 
+        if (!clip){
+            clip = new Rect(0,0,wSize,3148)
+        }
         if (!this.arabit) {
             this.arabit = bitmap.getPixels()
         }
@@ -382,10 +391,15 @@ export class FragmentDZAreaFlags extends JFragment {
         let revOffset = 32-valueBitLength
         let mask = (1 << valueBitLength) - 1;
         let blendedColor = [0, 0, 0, 0];
-            for (let y = 0; y < wSize; y++) {
+
+        const clipWidth = clip.mRight - clip.mLeft;
+        const clipHeight = clip.mBottom - clip.mTop;
+
+            for (let y = clip.mTop; y < clip.mBottom; y++) {
                 const yWSize = y * wSize
                 const pixelRowIndex = (wSize * (wSize - 1 - y)) << 2;
-                for (let x = 0; x < wSize; x++) {
+
+                for (let x = clip.mLeft; x <clip.mRight; x++) {
                     const index = yWSize + x;
                     const usageFlags = mUsageData[index];
                     const bitPosition = index * valueBitLength;
