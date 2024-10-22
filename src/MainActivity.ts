@@ -18,6 +18,16 @@ export class MainActivity extends Activity {
     }
 
     async onCreate() {
+        let simple_test =this.getResources().getBufferById(R.simple_test)
+        const bytes = new Uint8Array(simple_test.getDataView().buffer, simple_test.getDataView().byteOffset , simple_test.size);
+
+        const obj = await WebAssembly.instantiate(bytes);
+
+        // Вызов функции sumToN из WebAssembly
+        // @ts-ignore
+        const result = obj.instance.exports.sumToN(100); // Передаем 100
+        console.log('Сумма чисел от 1 до 100:', result);
+
         let app = (this.getApplicationContext() as Application);
         app.addFontFace("ui",this.getResources().getBufferById(R.fonts.regular).getDataView(),)
         app.addFontFace("ui",this.getResources().getBufferById(R.fonts.medium).getDataView(),{weight:"bold"})
