@@ -49,8 +49,7 @@ function rgbaToComponents(rgba: string) {
     out[3] = Math.round(out[3] * 255)
     return out
 }
-
-export const DZ_DEFAULT_USAGE_COLORS = [
+export const DZ_DEFAULT_USAGE_COLORS_DEF = [
     "rgba(197, 0, 0, 0.58)",
     "rgba(77, 77, 77, 0.47)",
     "rgba(83, 160, 168, 0.61)",
@@ -63,18 +62,23 @@ export const DZ_DEFAULT_USAGE_COLORS = [
     "rgba(106,51,97,0.74)",
     "rgba(101, 197, 186, 0.80)",
     "rgba(33, 78, 83, 0.47)",
-    "rgba(0, 0, 0, 1.00)",
+    "rgb(255,95,239)",
     "rgba(190, 80, 179, 0.61)",
     "rgba(224, 255, 69, 0.45)",
     "rgba(85, 0, 0, 0.47)"
-].map((itm) => rgbaToComponents(itm))
+]
 
-export const DZ_DEFAULT_VALUE_COLORS = [
+
+export const DZ_DEFAULT_VALUE_COLORS_DEF = [
     "rgba(178, 235, 255, 0.47)",
     "rgba(36,106,111,0.67)",
     "rgba(83,49,255,0.56)",
     "rgba(229,165,1,0.68)",
     "rgba(243, 255, 0, 0.60)"
-].map((itm) => rgbaToComponents(itm))
+]
+
+export const DZ_DEFAULT_USAGE_COLORS = DZ_DEFAULT_USAGE_COLORS_DEF.map((itm) => rgbaToComponents(itm))
+
+export const DZ_DEFAULT_VALUE_COLORS = DZ_DEFAULT_VALUE_COLORS_DEF.map((itm) => rgbaToComponents(itm))
 
 

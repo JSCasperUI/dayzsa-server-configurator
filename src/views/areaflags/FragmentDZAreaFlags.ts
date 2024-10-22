@@ -36,13 +36,8 @@ function alphaBlend43(src, dest) {
     const dr = dest[0];
     const dg = dest[1];
     const db = dest[2];
-
-
-    // let rem = da * (255 - sa) / 255
     let rem = da * (255 - sa) >> 8
-    // dest[0] = (sr * sa + dr * rem + 127) >> 8;
-    // dest[1] = (sg * sa + dg * rem + 127) >> 8;
-    // dest[2] = (sb * sa + db * rem + 127) >> 8;
+
     dest[0] = (sr * sa + dr * rem) >> 8;
     dest[1] = (sg * sa + dg * rem) >> 8;
     dest[2] = (sb * sa + db * rem) >> 8;
@@ -50,46 +45,6 @@ function alphaBlend43(src, dest) {
 }
 
 
-function alphaBlend3(src, dest) {
-
-    // const [sr, sg, sb, sa] = src;
-    // const [dr, dg, db, da] = dest;
-    const da = dest[3];
-    if (da === 0) {
-        return src;
-    }
-    const sa = src[3];
-    if (sa === 255) {
-        return src;
-    }
-
-    const sr = src[0];
-    const sg = src[1];
-    const sb = src[2];
-
-
-    const dr = dest[0];
-    const dg = dest[1];
-    const db = dest[2];
-
-
-    if (da === 0) {
-        return src;
-    }
-    if (sa === 0) {
-        return dest;
-    }
-
-
-    const invSa = 255 - sa;
-    const outA = sa + ((da * invSa + 127) >> 8);
-
-    const outR = (sr * sa + dr * da * invSa / 255 + 127) >> 8;
-    const outG = (sg * sa + dg * da * invSa / 255 + 127) >> 8;
-    const outB = (sb * sa + db * da * invSa / 255 + 127) >> 8;
-
-    return [outR, outG, outB, outA];
-}
 
 
 const MAX_ZOOM = 40
@@ -103,6 +58,9 @@ export class FragmentDZAreaFlags extends JFragment {
 
     private mAreaFlags: AreaFlag = new AreaFlag(null)
     private arabit: ImageData;
+    private mPreviewBitmap: Bitmap;
+    private mPreviewBitmapPixels: ImageData;
+    private isDrawMapImage: boolean = true;
 
 
     onCreateView(inflater: BXMLInflater, container: View): View {
@@ -248,10 +206,24 @@ export class FragmentDZAreaFlags extends JFragment {
             // canvas.style.cursor = 'grabbing';
         });
 
-
-        (this.getActivity() as MainActivity).mBaseConfigVM.mAreaFlagBinary.observe(this, value => {
+        let lvConfig = (this.getActivity() as MainActivity).mBaseConfigVM;
+        lvConfig.mAreaFlagBinary.observe(this, value => {
             this.loadAreaFlagData(value)
         })
+        lvConfig.mAreaFlagMask.observe(this,value => {
+            this.mValueFlags = value.visibleValueFlagsMask
+            this.mUsageFlags = value.visibleUsageFlagsMask
+            this.isDrawMapImage = value.mapImage
+            this.redrawArea()
+        })
+
+        lvConfig.mAreaFlagHoverEvent.observe(this,value => {
+            if (!this.mPreviewBitmap) return
+            this.printAreaFlagsToBitmapPreview(this.mPreviewBitmap,value.valueMask, value.usageMask)
+            this.draw()
+        })
+
+
 
     }
 
@@ -301,11 +273,19 @@ export class FragmentDZAreaFlags extends JFragment {
         this.mCanvas.scale(this.mapMove.scale, this.mapMove.scale)
         this.mCanvas.translate(this.mapMove.offsetX, this.mapMove.offsetY)
 
-        this.mCanvas.drawBitmap(this.mMapBitmap, this.p, this.mapRect)
+        if (this.isDrawMapImage){
+            this.mCanvas.drawBitmap(this.mMapBitmap, this.p, this.mapRect)
+        }
+
         if (this.mAreaBitmap) {
             canvas.drawBitmap(this.mAreaBitmap, this.p, this.mapRect)
         }
 
+        if (this.mPreviewBitmap) {
+            // this.mCanvas.scale(4, 4)
+            canvas.drawBitmap(this.mPreviewBitmap, this.p, this.mapRect)
+            // this.mCanvas.scale(-4, -4)
+        }
 
         let w = canvas.getWidth()
         let h = canvas.getHeight()
@@ -322,6 +302,13 @@ export class FragmentDZAreaFlags extends JFragment {
     }
 
 
+    redrawArea(){
+        if (!this.mAreaBitmap) return
+        this.printAreaFlagsToBitmap(this.mAreaBitmap, this.mValueFlags,this.mUsageFlags)
+        // this.printAreaFlagsToBitmapPreview(this.mPreviewBitmap, 1,0)
+        this.draw()
+    }
+
     loadAreaFlagData(area: AreaFlag) {
         if (!area) return
 
@@ -334,15 +321,14 @@ export class FragmentDZAreaFlags extends JFragment {
 
         this.arabit = null
         this.mAreaBitmap = Bitmap.createBitmap(this.mAreaFlags.mapSize, this.mAreaFlags.mapSize)
-
+        this.mPreviewBitmap = Bitmap.createBitmap(this.mAreaFlags.mapSize >> 3, this.mAreaFlags.mapSize>>3)
 
         // @ts-ignore
         window.flagsRedraw = (a, b) => {
-            this.printAreaFlagsToBitmap(this.mAreaBitmap, a, b)
+            this.printAreaFlagsToBitmapPreview(this.mPreviewBitmap, a, b)
             this.draw()
         }
-        this.printAreaFlagsToBitmap(this.mAreaBitmap, 0xFF, 0)
-        this.draw()
+        this.redrawArea()
 
     }
 
@@ -360,13 +346,13 @@ export class FragmentDZAreaFlags extends JFragment {
         let usageFlagsMaskBitArray = []
         let valueFlagsMaskBitArray = []
 
-        for (let i = 0; i < this.mAreaFlags.usageFlagsBitLength; i++) {
+        for (let i = 0; i < this.mAreaFlags.mUsageFlagsBitLength; i++) {
             let bit = (1 << i)
             if (usageFlagsMask & bit) {
                 const color = DZ_DEFAULT_USAGE_COLORS[i % DZ_DEFAULT_USAGE_COLORS.length];
                 usageFlagsMaskBitArray.push({bit, color})
             }
-            if (i < this.mAreaFlags.valueFlagsBitLength) {
+            if (i < this.mAreaFlags.mValueFlagsBitLength) {
                 if (valueFlagsMask & bit) {
                     const color = DZ_DEFAULT_VALUE_COLORS[i % DZ_DEFAULT_VALUE_COLORS.length];
                     valueFlagsMaskBitArray.push({bit, color})
@@ -379,7 +365,7 @@ export class FragmentDZAreaFlags extends JFragment {
 
 
         let xTime = Date.now()
-        const valueBitLength = this.mAreaFlags.valueFlagsBitLength
+        const valueBitLength = this.mAreaFlags.mValueFlagsBitLength
 
 
         let endianOffset = 32 - valueBitLength
@@ -389,7 +375,7 @@ export class FragmentDZAreaFlags extends JFragment {
 
 
         for (let y = clip.mTop; y < clip.mBottom; y++) {
-            const line = (wSize-y) * wSize
+            const line = (wSize-y-1) * wSize
             const invertLine =  y * wSize
 
             for (let x = clip.mLeft; x < clip.mRight; x++) {
@@ -401,7 +387,7 @@ export class FragmentDZAreaFlags extends JFragment {
 
                 blendedColor[3] = 0;
 
-                if (valueFlags !== 0 && (valueFlags & valueFlagsMask) != 0) {
+                if ((valueFlags & valueFlagsMask) != 0 && valueFlags !== 0 ) {
                     for (let flag = 0; flag < valueFlagsMaskBitArray.length; flag++) {
                         let bc = valueFlagsMaskBitArray[flag]
                         if ((valueFlags & bc.bit) != 0) {
@@ -427,9 +413,67 @@ export class FragmentDZAreaFlags extends JFragment {
             }
         }
 
-        this.mAreaBitmap.setPixelsDirty(this.arabit,clip)
+        this.mAreaBitmap.setPixelsDitry(this.arabit,clip)
         console.log((Date.now() - xTime))
     }
+    printAreaFlagsToBitmapPreview(bitmap: Bitmap, valueFlagsMask: number, usageFlagsMask: number, clip?: Rect) {
+        const offset = 3
+        let wSize = this.mAreaFlags.mapSize >> offset
 
+        if (!clip) {
+            clip = new Rect(0,0, wSize , wSize)
+        }
+        if (!this.mPreviewBitmapPixels) {
+            this.mPreviewBitmapPixels = bitmap.getPixels()
+        }
+
+        let pixels = this.mPreviewBitmapPixels.data
+
+
+        let mUsageData = this.mAreaFlags.mUsageFlagsArray
+        let mValuesData = this.mAreaFlags.mValuesFlagsArray;
+
+
+        const valueBitLength = this.mAreaFlags.mValueFlagsBitLength
+        pixels.fill(0)
+        if (usageFlagsMask ==0 && valueFlagsMask == 0){
+            bitmap.setPixelsDitry(this.mPreviewBitmapPixels,clip)
+            return
+        }
+
+
+
+        let endianOffset = 32 - valueBitLength
+        let mask = (1 << valueBitLength) - 1;
+        let pixelIndex = 0
+
+
+        for (let y = clip.mTop; y < clip.mBottom; y++) {
+            const line = ((wSize-1-y<<offset) * wSize) << offset
+            const invertLine =  y * wSize
+            for (let x = clip.mLeft; x < clip.mRight; x++) {
+
+
+                const index = line + (x<<offset);
+                const usageFlags = mUsageData[index];
+                const bitPosition = index * valueBitLength;
+                const valueFlags = (mValuesData[bitPosition >> 5] >> (endianOffset - (bitPosition % 32))) & mask;
+                if (usageFlags == 0 && valueFlags == 0) continue
+
+
+                if ((valueFlags & valueFlagsMask) != 0 && valueFlags !== 0 || usageFlags !== 0 && (usageFlags & usageFlagsMask) != 0) {
+                    pixelIndex = (invertLine + x) << 2;
+                    pixels[pixelIndex] = 0xFF;
+                    pixels[pixelIndex + 1] = 0xFF;
+                    pixels[pixelIndex + 2] = 0xFF;
+                    pixels[pixelIndex + 3] = 100;
+                }
+            }
+        }
+
+        bitmap.setPixelsDitry(this.mPreviewBitmapPixels,clip)
+    }
 
 }
+
+

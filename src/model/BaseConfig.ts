@@ -4,11 +4,27 @@ import {BXNodeContent} from "@dz/xml/XMLTreeContent";
 import {DZConfigTypes} from "@dz/dayz/DZConfigTypes";
 import {MapInfo} from "@dz/dayz/types/MapInfo";
 import {AreaFlag} from "@dz/dayz/types/AreaFlag";
+import {VisibleFlags} from "@dz/dayz/types/VisibleFlags";
+
+export interface AreaFlagHoverEvents {
+    valueMask:number
+    usageMask:number
+}
 
 const EMPTY = {} as BXNodeContent
 export class BaseConfig extends ViewModel {
 
     mAreaFlagBinary:LiveData<AreaFlag> = new LiveData<AreaFlag>(null)
+    mAreaFlagMask:LiveData<VisibleFlags> = new LiveData<VisibleFlags>({
+        visibleValueFlagsMask:0xFF,
+        visibleUsageFlagsMask:0xFFFFFFFF,
+        mapImage:true,
+    } as VisibleFlags)
+
+    mAreaFlagHoverEvent:LiveData<AreaFlagHoverEvents> = new LiveData<AreaFlagHoverEvents>({
+        valueMask:0,
+        usageMask:0
+    } as AreaFlagHoverEvents)
 
 
 

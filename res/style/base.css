@@ -327,3 +327,38 @@ border-bottom-left-radius: 0;
     width: 180px;
     text-align: center;
 }
+i > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.ic_eye {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    margin-bottom: 0px;
+}
+
+.eye_show_hide {
+    position: absolute;
+    right: 16px;
+    color: #9199b2;
+}
+
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 3px;
+    background-color: #222222;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #464646;
+    border-radius: 3px;
+}
+
+

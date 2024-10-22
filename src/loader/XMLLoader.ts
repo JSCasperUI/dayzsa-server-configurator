@@ -11,9 +11,7 @@ export class XMLLoader {
 
     async process(data:File,filePath:string) {
         if (filePath.endsWith(".xml")){
-            return
             let name = getPathFileName(filePath)
-            console.log(filePath)
 
             let  node = parseXMLString(await data.text())
             let dConfig = this.config.getConfig(node.tag)

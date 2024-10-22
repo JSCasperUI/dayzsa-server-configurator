@@ -1,0 +1,34 @@
+.tree_item {
+    width: 100%;
+    -webkit-user-select: none;
+    user-select: none;
+    height: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.tree_item.active {
+    background-color: rgb(52 101 196 / 85%) !important;
+}
+
+.tree_item:nth-child(2n + 1) {
+    background-color: #52525214;
+}
+
+.tree_item:hover {
+    background-color: var(--hover-background-color);
+}
+
+.tree_icon {
+    display: inline-block;
+    margin-left: 3px;
+}
+
+.tree_title {
+    display: inline-block;
+    margin-left: 5px;
+    color: #cccccc;
+    font-size: 14px;
+
+}

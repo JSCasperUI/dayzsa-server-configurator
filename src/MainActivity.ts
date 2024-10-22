@@ -34,7 +34,7 @@ export class MainActivity extends Activity {
                         {
                             l:50,
                             type: 0,
-                            meta:{type:"module_list"}
+                            meta:{type:"area_menu"}
                         },{
                             l:50,
                             type: 0,

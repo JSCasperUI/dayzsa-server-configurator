@@ -1,6 +1,7 @@
 import {LayoutFragment, SPLIT_TYPE} from "@casperui/layoutfragment/widget/LayoutFragment";
 import {RLayoutFragment} from "@casperui/layoutfragment/widget/R";
 import {FragmentDZAreaFlags} from "@dz/views/areaflags/FragmentDZAreaFlags";
+import {FragmentAreaMenu} from "@dz/views/areaflags/FragmentAreaMenu";
 
 
 export  class LayoutDistributorFragment extends LayoutFragment {
@@ -35,10 +36,10 @@ export  class LayoutDistributorFragment extends LayoutFragment {
                     fragment = new FragmentDZAreaFlags(this.getActivity())
                     break
                 }
-            //     case "lamp_list":{
-            //         fragment = new LampListFragment(this.getActivity())
-            //         break
-            //     }
+                case "area_menu":{
+                    fragment = new FragmentAreaMenu(this.getActivity())
+                    break
+                }
             //     case "lamp_models":{
             //         fragment = new LampModelsListFragment(this.getActivity())
             //         break
