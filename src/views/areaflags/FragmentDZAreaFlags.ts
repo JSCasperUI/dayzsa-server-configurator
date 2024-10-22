@@ -9,7 +9,6 @@ import {Rect} from "@casperui/core/graphics/Rect";
 import {MainActivity} from "@dz/MainActivity";
 import {AreaFlag} from "@dz/dayz/types/AreaFlag";
 import {DZ_DEFAULT_USAGE_COLORS, DZ_DEFAULT_VALUE_COLORS} from "@dz/dayz/DZDefaultAreaFlags";
-import {FastBlend} from "@dz/dayz/FBlend";
 
 
 function alphaBlend43(src, dest) {
@@ -39,13 +38,15 @@ function alphaBlend43(src, dest) {
     const db = dest[2];
 
 
-    let rem = da * (255 - sa) / 255
-    // const rem = ((da * invSa + 128) * 257) >> 16;
-    dest[3] =  sa + (rem >> 8);
-    dest[0] = (sr * sa + dr * rem + 127) >> 8;
-    dest[1] = (sg * sa + dg * rem + 127) >> 8;
-    dest[2] = (sb * sa + db * rem + 127) >> 8;
-
+    // let rem = da * (255 - sa) / 255
+    let rem = da * (255 - sa) >> 8
+    // dest[0] = (sr * sa + dr * rem + 127) >> 8;
+    // dest[1] = (sg * sa + dg * rem + 127) >> 8;
+    // dest[2] = (sb * sa + db * rem + 127) >> 8;
+    dest[0] = (sr * sa + dr * rem) >> 8;
+    dest[1] = (sg * sa + dg * rem) >> 8;
+    dest[2] = (sb * sa + db * rem) >> 8;
+    dest[3] = sa + (rem >> 8);
 }
 
 
@@ -99,10 +100,8 @@ export class FragmentDZAreaFlags extends JFragment {
     private mValueFlags = 0xFF //tiers 8 bit
     private mUsageFlags = 0xFFFFFF// 32 bit
 
-    private mWorldSize = 15360
-    private mMapSize = 4096
 
-    private mAreaFlags: AreaFlag = null
+    private mAreaFlags: AreaFlag = new AreaFlag(null)
     private arabit: ImageData;
 
 
@@ -132,7 +131,7 @@ export class FragmentDZAreaFlags extends JFragment {
 
     private mCordsTextView: View
 
-    private mAreaBitmap:Bitmap = null
+    private mAreaBitmap: Bitmap = null
 
     async onCreated() {
         super.onCreated();
@@ -209,6 +208,13 @@ export class FragmentDZAreaFlags extends JFragment {
         });
 
 
+
+        this.canvasView.makeSafeEvent('mousemove', (moveEvent) => {
+            if (this.mAreaBitmap) {
+                // this.printAreaFlagsToBitmap(this.mAreaBitmap, 0xFF, 0,new Rect(1900,1900,2000,2000))
+                // this.draw()
+            }
+        })
         this.canvasView.makeSafeEvent('wheel', (event) => {
             event.preventDefault();
             const zoomSpeed = 0.1;
@@ -216,13 +222,6 @@ export class FragmentDZAreaFlags extends JFragment {
 
             updateNewScale(zoom)
         });
-        this.canvasView.makeSafeEvent('mousemove', (moveEvent) => {
-            if (this.mAreaBitmap){
-                // this.printAreaFlagsToBitmap(this.mAreaBitmap, 0xFF, 0,new Rect(1500,1500,2000,2000))
-                // this.draw()
-            }
-        })
-
         this.canvasView.makeSafeEvent('mousedown', (event) => {
             this.mapMove.isDragging = true;
             this.mapMove.startX = event.clientX * this.dpi - this.mapMove.offsetX;
@@ -284,9 +283,9 @@ export class FragmentDZAreaFlags extends JFragment {
         const worldCenterX = (centerX - this.mapMove.offsetX) / this.mapMove.scale;
         const worldCenterY = (centerY - this.mapMove.offsetY) / this.mapMove.scale;
 
-        const scaleFactor = this.mWorldSize / this.mMapSize;
+        const scaleFactor = this.mAreaFlags.worldSize / this.mAreaFlags.mapSize;
         const worldX = (worldCenterX * scaleFactor).toFixed(4);
-        const worldY = (this.mWorldSize - (worldCenterY * scaleFactor)).toFixed(4);
+        const worldY = (this.mAreaFlags.worldSize - (worldCenterY * scaleFactor)).toFixed(4);
 
         this.mCordsTextView.setValue(`${worldX}, ${worldY}`)
 
@@ -328,30 +327,30 @@ export class FragmentDZAreaFlags extends JFragment {
 
         this.mAreaFlags = area
 
-        this.mMapSize = area.mMapInfo.mapSize
-        this.mapRect.mRight = this.mMapSize
-        this.mapRect.mBottom = this.mMapSize
 
-        this.mWorldSize = area.mMapInfo.worldSize
+        this.mapRect.mRight = this.mAreaFlags.mapSize
+        this.mapRect.mBottom = this.mAreaFlags.mapSize
+
+
         this.arabit = null
-        this.mAreaBitmap = Bitmap.createBitmap(this.mMapSize, this.mMapSize)
+        this.mAreaBitmap = Bitmap.createBitmap(this.mAreaFlags.mapSize, this.mAreaFlags.mapSize)
 
 
         // @ts-ignore
         window.flagsRedraw = (a, b) => {
-            // this.printAreaFlagsToBitmap(this.mAreaBitmap, a, b)
-            // this.draw()
+            this.printAreaFlagsToBitmap(this.mAreaBitmap, a, b)
+            this.draw()
         }
         this.printAreaFlagsToBitmap(this.mAreaBitmap, 0xFF, 0)
         this.draw()
 
     }
 
-    printAreaFlagsToBitmap(bitmap: Bitmap, valueFlagsMask: number, usageFlagsMask: number,clip?:Rect) {
-        let wSize = this.mMapSize
+    printAreaFlagsToBitmap(bitmap: Bitmap, valueFlagsMask: number, usageFlagsMask: number, clip?: Rect) {
+        let wSize = this.mAreaFlags.mapSize
 
-        if (!clip){
-            clip = new Rect(0,0,wSize,3148)
+        if (!clip) {
+            clip = new Rect(0,0, wSize, wSize)
         }
         if (!this.arabit) {
             this.arabit = bitmap.getPixels()
@@ -361,13 +360,13 @@ export class FragmentDZAreaFlags extends JFragment {
         let usageFlagsMaskBitArray = []
         let valueFlagsMaskBitArray = []
 
-        for (let i = 0; i < 32; i++) {
+        for (let i = 0; i < this.mAreaFlags.usageFlagsBitLength; i++) {
             let bit = (1 << i)
             if (usageFlagsMask & bit) {
                 const color = DZ_DEFAULT_USAGE_COLORS[i % DZ_DEFAULT_USAGE_COLORS.length];
                 usageFlagsMaskBitArray.push({bit, color})
             }
-            if (i < 8) {
+            if (i < this.mAreaFlags.valueFlagsBitLength) {
                 if (valueFlagsMask & bit) {
                     const color = DZ_DEFAULT_VALUE_COLORS[i % DZ_DEFAULT_VALUE_COLORS.length];
                     valueFlagsMaskBitArray.push({bit, color})
@@ -375,95 +374,62 @@ export class FragmentDZAreaFlags extends JFragment {
             }
         }
 
+        let mUsageData = this.mAreaFlags.mUsageFlagsArray
+        let mValuesData = this.mAreaFlags.mValuesFlagsArray;
 
-        let hw = wSize * wSize
-        let mUsageLength = (hw * this.mAreaFlags.mMapInfo.flagsBitLength) / 32
-        let mValuesLength = (hw * this.mAreaFlags.mMapInfo.valueBitLength) / 32
-
-
-        let mUsageData = new Uint32Array(this.mAreaFlags.mBuffer.buffer, 20, mUsageLength);
-        let mValuesData = new Uint32Array(this.mAreaFlags.mBuffer.buffer, 24 + (mUsageLength * 4), mValuesLength);
 
         let xTime = Date.now()
-        const valueBitLength = this.mAreaFlags.mMapInfo.valueBitLength
+        const valueBitLength = this.mAreaFlags.valueFlagsBitLength
 
 
-        let revOffset = 32-valueBitLength
+        let endianOffset = 32 - valueBitLength
         let mask = (1 << valueBitLength) - 1;
         let blendedColor = [0, 0, 0, 0];
+        let pixelIndex = 0
 
-        const clipWidth = clip.mRight - clip.mLeft;
-        const clipHeight = clip.mBottom - clip.mTop;
 
-            for (let y = clip.mTop; y < clip.mBottom; y++) {
-                const yWSize = y * wSize
-                const pixelRowIndex = (wSize * (wSize - 1 - y)) << 2;
+        for (let y = clip.mTop; y < clip.mBottom; y++) {
+            const line = (wSize-y) * wSize
+            const invertLine =  y * wSize
 
-                for (let x = clip.mLeft; x <clip.mRight; x++) {
-                    const index = yWSize + x;
-                    const usageFlags = mUsageData[index];
-                    const bitPosition = index * valueBitLength;
-                    const valueFlags = (mValuesData[bitPosition >> 5] >> (revOffset - (bitPosition % 32))) & mask;
-                    if (usageFlags == 0 && valueFlags == 0) continue
-                    blendedColor = [0, 0, 0, 0];
-                    if (valueFlags !== 0 && (valueFlags & valueFlagsMask) != 0) {
-                        for (let flag = 0; flag < valueFlagsMaskBitArray.length; flag++) {
-                            let bc = valueFlagsMaskBitArray[flag]
-                            if ((valueFlags & bc.bit) != 0) {
-                                alphaBlend43(bc.color, blendedColor);
-                            }
+            for (let x = clip.mLeft; x < clip.mRight; x++) {
+                const index = line + x;
+                const usageFlags = mUsageData[index];
+                const bitPosition = index * valueBitLength;
+                const valueFlags = (mValuesData[bitPosition >> 5] >> (endianOffset - (bitPosition % 32))) & mask;
+                if (usageFlags == 0 && valueFlags == 0) continue
+
+                blendedColor[3] = 0;
+
+                if (valueFlags !== 0 && (valueFlags & valueFlagsMask) != 0) {
+                    for (let flag = 0; flag < valueFlagsMaskBitArray.length; flag++) {
+                        let bc = valueFlagsMaskBitArray[flag]
+                        if ((valueFlags & bc.bit) != 0) {
+                            alphaBlend43(bc.color, blendedColor);
                         }
                     }
-
-                    if (usageFlags !== 0 && (usageFlags & usageFlagsMask) != 0) {
-                        for (let flag = 0; flag < usageFlagsMaskBitArray.length; flag++) {
-                            let bc = usageFlagsMaskBitArray[flag]
-                            if ((usageFlags & bc.bit) != 0) {
-                                // blendedColor = alphaBlend3(bc.color, blendedColor);
-                                alphaBlend43(bc.color, blendedColor);
-
-                            }
-                        }
-                    }
-
-                    const pixelIndex = pixelRowIndex + (x << 2);
-                    pixels[pixelIndex] = blendedColor[0];
-                    pixels[pixelIndex + 1] = blendedColor[1];
-                    pixels[pixelIndex + 2] = blendedColor[2];
-                    pixels[pixelIndex + 3] = blendedColor[3];
                 }
+
+                if (usageFlags !== 0 && (usageFlags & usageFlagsMask) != 0) {
+                    for (let flag = 0; flag < usageFlagsMaskBitArray.length; flag++) {
+                        let bc = usageFlagsMaskBitArray[flag]
+                        if ((usageFlags & bc.bit) != 0) {
+                            alphaBlend43(bc.color, blendedColor);
+                        }
+                    }
+                }
+
+                pixelIndex =  (invertLine + x) << 2;
+                pixels[pixelIndex] = blendedColor[0];
+                pixels[pixelIndex + 1] = blendedColor[1];
+                pixels[pixelIndex + 2] = blendedColor[2];
+                pixels[pixelIndex + 3] = blendedColor[3];
             }
+        }
 
+        this.mAreaBitmap.setPixelsDirty(this.arabit,clip)
         console.log((Date.now() - xTime))
-        this.mAreaBitmap.setPixels(this.arabit)
     }
 
 
-}
-
-function getPixDataX(dataArray, bitLength, pixelIndex) {
-    const bitsPerByte = 8;
-    const bitPosition = pixelIndex * bitLength;
-    const byteIndex = Math.floor(bitPosition / bitsPerByte);
-    const bitOffset = bitPosition % bitsPerByte;
-
-    // Извлекаем текущий байт
-    let currentByte = dataArray[byteIndex];
-
-    // Количество доступных бит в текущем байте
-    let bitsAvailable = bitsPerByte - bitOffset;
-
-    let result;
-
-    if (bitsAvailable >= bitLength) {
-        // Все биты находятся в текущем байте
-        result = (currentByte >> bitOffset) & ((1 << bitLength) - 1);
-    } else {
-        // Биты разбросаны между текущим и следующим байтом
-        let nextByte = dataArray[byteIndex + 1] || 0; // Защита от выхода за пределы массива
-        let combinedBytes = (nextByte << 8) | currentByte; // Объединяем байты
-        result = (combinedBytes >> bitOffset) & ((1 << bitLength) - 1);
-    }
-
-    return result;
 }

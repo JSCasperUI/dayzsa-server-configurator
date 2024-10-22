@@ -11,6 +11,7 @@ export class XMLLoader {
 
     async process(data:File,filePath:string) {
         if (filePath.endsWith(".xml")){
+            return
             let name = getPathFileName(filePath)
             console.log(filePath)
 
@@ -20,6 +21,7 @@ export class XMLLoader {
 
 
         }else if (filePath.endsWith(".map")){
+            console.log(filePath)
             this.config.mAreaFlagBinary.setValue(new AreaFlag(await data.arrayBuffer()))
         }
 
