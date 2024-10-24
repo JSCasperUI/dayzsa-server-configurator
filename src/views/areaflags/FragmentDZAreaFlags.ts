@@ -9,6 +9,7 @@ import {Rect} from "@casperui/core/graphics/Rect";
 import {MainActivity} from "@dz/MainActivity";
 import {AreaFlag} from "@dz/dayz/types/AreaFlag";
 import {DZ_DEFAULT_USAGE_COLORS, DZ_DEFAULT_VALUE_COLORS} from "@dz/dayz/DZDefaultAreaFlags";
+import {AreaFlagRender} from "@dz/dayz/AreaFlagRender";
 
 
 function alphaBlend43(src, dest) {
@@ -61,6 +62,7 @@ export class FragmentDZAreaFlags extends JFragment {
     private mPreviewBitmap: Bitmap;
     private mPreviewBitmapPixels: ImageData;
     private isDrawMapImage: boolean = true;
+    private areaRender: AreaFlagRender;
 
 
     onCreateView(inflater: BXMLInflater, container: View): View {
@@ -304,14 +306,23 @@ export class FragmentDZAreaFlags extends JFragment {
 
     redrawArea(){
         if (!this.mAreaBitmap) return
-        this.printAreaFlagsToBitmap(this.mAreaBitmap, this.mValueFlags,this.mUsageFlags)
+        let wSize = this.mAreaFlags.mapSize
+
+        let clip = new Rect(0,0, wSize, wSize)
+        this.areaRender.printAreaFlagsToBitmap(this.mValueFlags,this.mUsageFlags,clip)
+        this.mAreaBitmap.setPixelsDitry(this.areaRender.imageData,clip)
+
+        //this.printAreaFlagsToBitmap(this.mAreaBitmap, this.mValueFlags,this.mUsageFlags)
         // this.printAreaFlagsToBitmapPreview(this.mPreviewBitmap, 1,0)
         this.draw()
     }
 
-    loadAreaFlagData(area: AreaFlag) {
+    async loadAreaFlagData(area: AreaFlag) {
         if (!area) return
 
+
+        this.areaRender = new AreaFlagRender(this.getContext())
+        await this.areaRender.init(area)
         this.mAreaFlags = area
 
 
@@ -322,6 +333,8 @@ export class FragmentDZAreaFlags extends JFragment {
         this.arabit = null
         this.mAreaBitmap = Bitmap.createBitmap(this.mAreaFlags.mapSize, this.mAreaFlags.mapSize)
         this.mPreviewBitmap = Bitmap.createBitmap(this.mAreaFlags.mapSize >> 3, this.mAreaFlags.mapSize>>3)
+
+
 
         // @ts-ignore
         window.flagsRedraw = (a, b) => {

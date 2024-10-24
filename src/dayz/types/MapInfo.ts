@@ -2,6 +2,6 @@
 export interface MapInfo {
     mapSize:number,
     worldSize:number,
-    valueBitLength:number,
-    flagsBitLength:number,
+    valueFlagsBitLength:number,
+    usageFlagsBitLength:number,
 }

@@ -7,7 +7,8 @@
     "build": "webpack --mode production",
     "start": "webpack serve --open",
     "resources_dev": "node dev/core/resmaker/src/main.js --include_path --watch",
-    "resources_test_res": "node dev/core/resmaker/src/main.js --include_path"
+    "resources_test_res": "node dev/core/resmaker/src/main.js --include_path",
+    "build_wasm": "cmd /c /emsdk/emsdk_env.bat && emcc ./src/example.c -O3 -o ./public/example.wasm -s WASM=1 -s EXPORTED_FUNCTIONS='[\"_*\"]'"
   },
   "author": "",
   "license": "ISC",

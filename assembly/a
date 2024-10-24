@@ -1,0 +1,1 @@
+emcc ./assembly/app.c -msimd128 -o ./res/example.wasm -s WASM=1 -s EXPORTED_FUNCTIONS='["_printAreaFlagsToBitmap"]' --no-entry -s IMPORTED_MEMORY=1 -s ALLOW_MEMORY_GROWTH=1

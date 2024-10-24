@@ -81,4 +81,4 @@ export const DZ_DEFAULT_USAGE_COLORS = DZ_DEFAULT_USAGE_COLORS_DEF.map((itm) => 
 
 export const DZ_DEFAULT_VALUE_COLORS = DZ_DEFAULT_VALUE_COLORS_DEF.map((itm) => rgbaToComponents(itm))
 
-
+console.log(JSON.stringify(DZ_DEFAULT_VALUE_COLORS),JSON.stringify(DZ_DEFAULT_USAGE_COLORS))
