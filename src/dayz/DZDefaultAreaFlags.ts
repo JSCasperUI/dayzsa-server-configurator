@@ -26,6 +26,10 @@ export const DZ_DEFAULT_VALUE_FLAGS = [
     "Unique",
 ]
 
+function rgbaCToInt(c) {
+    return (c[3] & 0xFF) << 24 | (c[2] & 0xFF) << 16 | (c[1] & 0xFF) << 8 | (c[0] & 0xFF);
+}
+
 function argbToComponents(color) {
     const a = (color >>> 24) & 0xff;
     const r = (color >>> 16) & 0xff;
@@ -50,9 +54,9 @@ function rgbaToComponents(rgba: string) {
     return out
 }
 export const DZ_DEFAULT_USAGE_COLORS_DEF = [
-    "rgba(197, 0, 0, 0.58)",
+    "rgba(197, 0, 0, 0.38)",
     "rgba(77, 77, 77, 0.47)",
-    "rgba(83, 160, 168, 0.61)",
+    "rgba(83, 160, 168, 0.31)",
     "rgba(66, 203, 75, 0.55)",
     "rgba(207, 34, 152, 0.50)",
     "rgba(97, 75, 50, 0.76)",
@@ -60,25 +64,27 @@ export const DZ_DEFAULT_USAGE_COLORS_DEF = [
     "rgba(208, 208, 38, 0.77)",
     "rgba(190, 147, 62, 0.81)",
     "rgba(106,51,97,0.74)",
-    "rgba(101, 197, 186, 0.80)",
+    "rgba(101, 197, 186, 0.40)",
     "rgba(33, 78, 83, 0.47)",
     "rgb(255,95,239)",
-    "rgba(190, 80, 179, 0.61)",
+    "rgba(190, 80, 179, 0.31)",
     "rgba(224, 255, 69, 0.45)",
-    "rgba(85, 0, 0, 0.47)"
+    "rgba(85, 1, 1, 0.27)"
 ]
 
 
 export const DZ_DEFAULT_VALUE_COLORS_DEF = [
-    "rgba(178, 235, 255, 0.47)",
-    "rgba(36,106,111,0.67)",
-    "rgba(83,49,255,0.56)",
-    "rgba(229,165,1,0.68)",
-    "rgba(243, 255, 0, 0.60)"
+    "rgba(178, 235, 255, 0.35)",
+    "rgba(36,106,111,0.35)",
+    "rgba(83,49,255,0.35)",
+    "rgba(229,165,1,0.35)",
+    "rgba(243, 255, 0, 0.35)"
 ]
 
 export const DZ_DEFAULT_USAGE_COLORS = DZ_DEFAULT_USAGE_COLORS_DEF.map((itm) => rgbaToComponents(itm))
 
 export const DZ_DEFAULT_VALUE_COLORS = DZ_DEFAULT_VALUE_COLORS_DEF.map((itm) => rgbaToComponents(itm))
 
-console.log(JSON.stringify(DZ_DEFAULT_VALUE_COLORS),JSON.stringify(DZ_DEFAULT_USAGE_COLORS))
+export const DZ_DEFAULT_USAGE_COLORS_INT = DZ_DEFAULT_USAGE_COLORS.map((itm) => rgbaCToInt(itm))
+
+export const DZ_DEFAULT_VALUE_COLORS_INT = DZ_DEFAULT_VALUE_COLORS.map((itm) => rgbaCToInt(itm))

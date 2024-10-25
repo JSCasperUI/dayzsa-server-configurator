@@ -42,11 +42,11 @@ export class MainActivity extends Activity {
 
                 {type: 2,l:15,child: [
                         {
-                            l:50,
+                            l:95,
                             type: 0,
                             meta:{type:"area_menu"}
                         },{
-                            l:50,
+                            l:5,
                             type: 0,
                             meta:{type:"property"}
                         }

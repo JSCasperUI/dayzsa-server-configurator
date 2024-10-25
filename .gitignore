@@ -7,3 +7,4 @@ assets/res.html
 package-lock.json
 assets/*.map
 emsdk
+src/R.ts

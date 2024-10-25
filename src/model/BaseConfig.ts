@@ -3,7 +3,7 @@ import {LiveData} from "@casperui/core/live/LiveData";
 import {BXNodeContent} from "@dz/xml/XMLTreeContent";
 import {DZConfigTypes} from "@dz/dayz/DZConfigTypes";
 import {MapInfo} from "@dz/dayz/types/MapInfo";
-import {AreaFlag} from "@dz/dayz/types/AreaFlag";
+import {AreaFlagsFile} from "@dz/dayz/types/AreaFlagsFile";
 import {VisibleFlags} from "@dz/dayz/types/VisibleFlags";
 
 export interface AreaFlagHoverEvents {
@@ -14,7 +14,7 @@ export interface AreaFlagHoverEvents {
 const EMPTY = {} as BXNodeContent
 export class BaseConfig extends ViewModel {
 
-    mAreaFlagBinary:LiveData<AreaFlag> = new LiveData<AreaFlag>(null)
+    mAreaFlagBinary:LiveData<AreaFlagsFile> = new LiveData<AreaFlagsFile>(null)
     mAreaFlagMask:LiveData<VisibleFlags> = new LiveData<VisibleFlags>({
         visibleValueFlagsMask:0xFF,
         visibleUsageFlagsMask:0xFFFFFFFF,

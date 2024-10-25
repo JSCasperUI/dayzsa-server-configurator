@@ -1,7 +1,7 @@
 import {BaseConfig} from "@dz/model/BaseConfig";
 import {getPathFileName} from "@dz/space/utils";
 import {parseXMLString} from "@dz/xml/XMLTreeContent";
-import {AreaFlag} from "@dz/dayz/types/AreaFlag";
+import {AreaFlagsFile} from "@dz/dayz/types/AreaFlagsFile";
 
 export class XMLLoader {
     config:BaseConfig
@@ -20,7 +20,7 @@ export class XMLLoader {
 
         }else if (filePath.endsWith(".map")){
             console.log(filePath)
-            this.config.mAreaFlagBinary.setValue(new AreaFlag(await data.arrayBuffer()))
+            this.config.mAreaFlagBinary.setValue(new AreaFlagsFile(await data.arrayBuffer()))
         }
 
     }

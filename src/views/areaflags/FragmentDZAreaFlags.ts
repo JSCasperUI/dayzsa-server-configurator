@@ -7,7 +7,7 @@ import {Bitmap} from "@casperui/core/graphics/Bitmap";
 import {Paint} from "@casperui/core/graphics/Paint";
 import {Rect} from "@casperui/core/graphics/Rect";
 import {MainActivity} from "@dz/MainActivity";
-import {AreaFlag} from "@dz/dayz/types/AreaFlag";
+import {AreaFlagsFile} from "@dz/dayz/types/AreaFlagsFile";
 import {DZ_DEFAULT_USAGE_COLORS, DZ_DEFAULT_VALUE_COLORS} from "@dz/dayz/DZDefaultAreaFlags";
 import {AreaFlagRender} from "@dz/dayz/AreaFlagRender";
 
@@ -57,7 +57,7 @@ export class FragmentDZAreaFlags extends JFragment {
     private mUsageFlags = 0xFFFFFF// 32 bit
 
 
-    private mAreaFlags: AreaFlag = new AreaFlag(null)
+    private mAreaFlags: AreaFlagsFile = new AreaFlagsFile(null)
     private arabit: ImageData;
     private mPreviewBitmap: Bitmap;
     private mPreviewBitmapPixels: ImageData;
@@ -183,6 +183,54 @@ export class FragmentDZAreaFlags extends JFragment {
             updateNewScale(zoom)
         });
         this.canvasView.makeSafeEvent('mousedown', (event) => {
+
+            if (event.ctrlKey) {
+                console.log('Ctrl + Mouse Down');
+                const onMouseMoveD = (moveEvent) => {
+                        const mv = this.mapMove
+                        // this.mapMove.offsetX = moveEvent.clientX * this.dpi - this.mapMove.startX;
+                        // this.mapMove.offsetY = moveEvent.clientY * this.dpi - this.mapMove.startY;
+
+                        let canvas = this.mCanvas
+                        let w = canvas.getWidth();
+                        let h = canvas.getHeight();
+
+
+                    let posX = Math.round(((moveEvent.offsetX * this.dpi) - mv.offsetX)/mv.scale)
+                    let posY = Math.round(((moveEvent.offsetY * this.dpi) - mv.offsetY)/mv.scale)
+                    // posY = this.mAreaFlags.mapSize - posY
+
+                        console.log(mv.scale,posX,posY)
+
+                    let mw = this.mAreaFlags.mapWidth
+                        // if (!this.mAreaBitmap) return
+                        // let wSize = this.mAreaFlags.mapSize
+                    let radius = 150
+
+                    let clip = new Rect(posX-radius,posY-radius, posX+radius, posY+radius)
+                    this.areaRender.drawCircle(posX,posY,radius,this.areaRender.mValuesData.byteOffset,mw,mw,4,1<<2,0)
+                    this.areaRender.printAreaFlagsToBitmap(this.mValueFlags,this.mUsageFlags,clip)
+                        this.mAreaBitmap.setPixelsDitry(this.areaRender.imageData,clip)
+                    //
+                    //
+                    //
+                        this.draw();
+
+
+                };
+
+                const onMouseUpX = () => {
+
+                    document.removeEventListener('mousemove', onMouseMoveD);
+                    document.removeEventListener('mouseup', onMouseUpX);
+                };
+
+                document.addEventListener('mousemove', onMouseMoveD);
+                document.addEventListener('mouseup', onMouseUpX);
+                return
+                // Ваш код для обработки события
+            }
+
             this.mapMove.isDragging = true;
             this.mapMove.startX = event.clientX * this.dpi - this.mapMove.offsetX;
             this.mapMove.startY = event.clientY * this.dpi - this.mapMove.offsetY;
@@ -257,9 +305,9 @@ export class FragmentDZAreaFlags extends JFragment {
         const worldCenterX = (centerX - this.mapMove.offsetX) / this.mapMove.scale;
         const worldCenterY = (centerY - this.mapMove.offsetY) / this.mapMove.scale;
 
-        const scaleFactor = this.mAreaFlags.worldSize / this.mAreaFlags.mapSize;
+        const scaleFactor = this.mAreaFlags.worldWidth / this.mAreaFlags.mapWidth;
         const worldX = (worldCenterX * scaleFactor).toFixed(4);
-        const worldY = (this.mAreaFlags.worldSize - (worldCenterY * scaleFactor)).toFixed(4);
+        const worldY = (this.mAreaFlags.worldWidth - (worldCenterY * scaleFactor)).toFixed(4);
 
         this.mCordsTextView.setValue(`${worldX}, ${worldY}`)
 
@@ -306,18 +354,18 @@ export class FragmentDZAreaFlags extends JFragment {
 
     redrawArea(){
         if (!this.mAreaBitmap) return
-        let wSize = this.mAreaFlags.mapSize
+        let wSize = this.mAreaFlags.mapWidth
 
         let clip = new Rect(0,0, wSize, wSize)
         this.areaRender.printAreaFlagsToBitmap(this.mValueFlags,this.mUsageFlags,clip)
         this.mAreaBitmap.setPixelsDitry(this.areaRender.imageData,clip)
 
-        //this.printAreaFlagsToBitmap(this.mAreaBitmap, this.mValueFlags,this.mUsageFlags)
+        // this.printAreaFlagsToBitmap(this.mAreaBitmap, this.mValueFlags,this.mUsageFlags)
         // this.printAreaFlagsToBitmapPreview(this.mPreviewBitmap, 1,0)
         this.draw()
     }
 
-    async loadAreaFlagData(area: AreaFlag) {
+    async loadAreaFlagData(area: AreaFlagsFile) {
         if (!area) return
 
 
@@ -326,13 +374,13 @@ export class FragmentDZAreaFlags extends JFragment {
         this.mAreaFlags = area
 
 
-        this.mapRect.mRight = this.mAreaFlags.mapSize
-        this.mapRect.mBottom = this.mAreaFlags.mapSize
+        this.mapRect.mRight = this.mAreaFlags.mapWidth
+        this.mapRect.mBottom = this.mAreaFlags.mapWidth
 
 
         this.arabit = null
-        this.mAreaBitmap = Bitmap.createBitmap(this.mAreaFlags.mapSize, this.mAreaFlags.mapSize)
-        this.mPreviewBitmap = Bitmap.createBitmap(this.mAreaFlags.mapSize >> 3, this.mAreaFlags.mapSize>>3)
+        this.mAreaBitmap = Bitmap.createBitmap(this.mAreaFlags.mapWidth, this.mAreaFlags.mapWidth)
+        this.mPreviewBitmap = Bitmap.createBitmap(this.mAreaFlags.mapWidth >> 3, this.mAreaFlags.mapWidth>>3)
 
 
 
@@ -346,7 +394,7 @@ export class FragmentDZAreaFlags extends JFragment {
     }
 
     printAreaFlagsToBitmap(bitmap: Bitmap, valueFlagsMask: number, usageFlagsMask: number, clip?: Rect) {
-        let wSize = this.mAreaFlags.mapSize
+        let wSize = this.mAreaFlags.mapWidth
 
         if (!clip) {
             clip = new Rect(0,0, wSize, wSize)
@@ -431,7 +479,7 @@ export class FragmentDZAreaFlags extends JFragment {
     }
     printAreaFlagsToBitmapPreview(bitmap: Bitmap, valueFlagsMask: number, usageFlagsMask: number, clip?: Rect) {
         const offset = 3
-        let wSize = this.mAreaFlags.mapSize >> offset
+        let wSize = this.mAreaFlags.mapWidth >> offset
 
         if (!clip) {
             clip = new Rect(0,0, wSize , wSize)
