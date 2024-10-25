@@ -46,6 +46,8 @@ export class AreaFlagRender {
     private mLayersPointer: number
     private mLayersDepthPointer: number
     private mLayersColorsPointer: number
+    private mLayersVisibleFlagsPointer: number;
+    private mVisibleFlags: Uint32Array;
 
     constructor(ctx: Context) {
         this.ctx = ctx
@@ -69,15 +71,27 @@ export class AreaFlagRender {
         const layers = flagsFile.getLayers()
 
 
-        this.mLayersPointer = ll.alloc(layers.length * 4)
-        this.mLayersDepthPointer = ll.alloc(layers.length * 4)
-        this.mLayersColorsPointer = ll.alloc(layers.length * 4)
+        this.mLayersPointer = ll.newPtrArray(layers.length)
+        this.mLayersDepthPointer = ll.newPtrArray(layers.length)
+        this.mLayersColorsPointer = ll.newPtrArray(layers.length)
+
+        this.mLayersVisibleFlagsPointer = ll.newPtrArray(layers.length)
 
 
+        this.mVisibleFlags = ll.getPointerArray(this.mLayersVisibleFlagsPointer,layers.length)
+
+        let layersArray =  ll.getPointerArray(this.mLayersPointer,layers.length)
+        let layersDepthArray =  ll.getPointerArray(this.mLayersPointer,layers.length)
 
 
         for (let i = 0; i < layers.length; i++) {
             const l = layers[i]
+            const layerPointer = ll.alloc(l.array.byteLength)
+            ll.getPointerArray(layerPointer,l.array.length).set(l.array)
+
+
+            layersDepthArray[i] = l.depth
+            layersArray[i] = layerPointer
 
         }
 
