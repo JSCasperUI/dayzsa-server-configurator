@@ -205,11 +205,14 @@ export class FragmentDZAreaFlags extends JFragment {
                     let mw = this.mAreaFlags.mapWidth
                         // if (!this.mAreaBitmap) return
                         // let wSize = this.mAreaFlags.mapSize
-                    let radius = 150
+                    let radius = 250
 
                     let clip = new Rect(posX-radius,posY-radius, posX+radius, posY+radius)
-                    this.areaRender.drawCircle(posX,posY,radius,this.areaRender.mValuesData.byteOffset,mw,mw,4,1<<2,0)
-                    this.areaRender.printAreaFlagsToBitmap(this.mValueFlags,this.mUsageFlags,clip)
+                    this.areaRender.drawCircle(posX,posY,radius,this.areaRender.mAreaLayers.layers.getPtr(1),mw,mw,this.areaRender.mAreaLayers.depths.getValue(1),1<<1,0)
+                    // this.areaRender.printAreaFlagsToBitmap(this.mValueFlags,this.mUsageFlags,clip)
+                    let time = this.areaRender.drawToBitmap([this.mUsageFlags,this.mValueFlags],clip)
+
+                    this.byId(R.id.time).setValue(time.toString())
                         this.mAreaBitmap.setPixelsDitry(this.areaRender.imageData,clip)
                     //
                     //
@@ -357,8 +360,14 @@ export class FragmentDZAreaFlags extends JFragment {
         let wSize = this.mAreaFlags.mapWidth
 
         let clip = new Rect(0,0, wSize, wSize)
-        this.areaRender.printAreaFlagsToBitmap(this.mValueFlags,this.mUsageFlags,clip)
+        // this.areaRender.printAreaFlagsToBitmap(this.mValueFlags,this.mUsageFlags,clip)
+        // this.mAreaBitmap.setPixelsDitry(this.areaRender.imageData,clip)
+        // this.areaRender.drawToBitmap([this.mUsageFlags,this.mValueFlags],clip)
+        let time = this.areaRender.drawToBitmap([this.mUsageFlags,this.mValueFlags],clip)
+
+        this.byId(R.id.time).setValue(time.toString())
         this.mAreaBitmap.setPixelsDitry(this.areaRender.imageData,clip)
+
 
         // this.printAreaFlagsToBitmap(this.mAreaBitmap, this.mValueFlags,this.mUsageFlags)
         // this.printAreaFlagsToBitmapPreview(this.mPreviewBitmap, 1,0)
@@ -370,7 +379,7 @@ export class FragmentDZAreaFlags extends JFragment {
 
 
         this.areaRender = new AreaFlagRender(this.getContext())
-        await this.areaRender.init(area)
+        await this.areaRender.initV2(area)
         this.mAreaFlags = area
 
 
@@ -379,8 +388,8 @@ export class FragmentDZAreaFlags extends JFragment {
 
 
         this.arabit = null
-        this.mAreaBitmap = Bitmap.createBitmap(this.mAreaFlags.mapWidth, this.mAreaFlags.mapWidth)
-        this.mPreviewBitmap = Bitmap.createBitmap(this.mAreaFlags.mapWidth >> 3, this.mAreaFlags.mapWidth>>3)
+        this.mAreaBitmap = Bitmap.createBitmap(this.mAreaFlags.mapWidth, this.mAreaFlags.mapHeight)
+        this.mPreviewBitmap = Bitmap.createBitmap(this.mAreaFlags.mapWidth >> 3, this.mAreaFlags.mapHeight>>3)
 
 
 

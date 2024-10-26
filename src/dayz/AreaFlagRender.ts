@@ -1,29 +1,42 @@
 import {Context} from "@casperui/core/content/Context";
 import {R} from "@dz/R";
 import {AreaFlagsFile} from "@dz/dayz/types/AreaFlagsFile";
-import {Bitmap} from "@casperui/core/graphics/Bitmap";
 import {Rect} from "@casperui/core/graphics/Rect";
 import {
     DZ_DEFAULT_USAGE_COLORS,
     DZ_DEFAULT_USAGE_COLORS_INT,
     DZ_DEFAULT_VALUE_COLORS_INT
 } from "@dz/dayz/DZDefaultAreaFlags";
-import {LineAllocator} from "@dz/dayz/wasm/helper";
 
-function leToBe32(value) {
-    return ((value & 0x000000FF) << 24) |  // Младший байт перемещаем на старшую позицию
-        ((value & 0x0000FF00) << 8)  |  // Второй байт перемещаем влево на 8 бит
-        ((value & 0x00FF0000) >> 8)  |  // Третий байт перемещаем вправо на 8 бит
-        ((value & 0xFF000000) >>> 24);  // Старший байт перемещаем на младшую позицию
-}
+import {LineAllocator, WPointerArrayOfPointers, WPointerArrayUInt32} from "@dz/dayz/wasm/helper";
+
 type FPrintAreaFlagsToBitmap = (bitmap: number, mValuesData: number, mUsageData: number, valueFlagsMask: number, usageFlagsMask: number, wSize: number, valueBitLength: number, clipLeft: number, clipTop: number, clipRight: number, clipBottom: number) => number
 
 type FDrawCircle = (xc: number, yx: number,radius:number, buffer: number, width: number, height: number, pixelSize: number, bit: number, mode: number) => number
 type FDrawFlagBitmap = (
-    output: number,layers: number, layersCount: number,layersPixelSizes:number, layersVisibleMasks: number,
-
+    output: number,layers: number, layersCount: number,layersPixelSizes:number, layersVisibleMasks: number,maxCounts:number,
     layersFlagColors: number, originalWidth: number,  clipLeft: number, clipTop: number, clipRight: number, clipBottom: number) => number
 
+
+interface AreaLayers {
+    count:number
+    layers:WPointerArrayOfPointers      // Array<AreaFlagPixels>
+    dataLayers:Array<Uint32Array>
+    depths:WPointerArrayUInt32          // Array<UInt32>
+    masks:WPointerArrayUInt32           // Array<UInt32>
+    maxCounts:WPointerArrayUInt32           // Array<UInt32>
+    colors:WPointerArrayOfPointers      // Array<Array<UInt32>(32)>
+    colorValues:Array<WPointerArrayUInt32>
+}
+
+const BITMASK = {
+    1:0x01,
+    2:0x03,
+    4:0xF,
+    8:0xFF,
+    16:0xFF_FF,
+    32:0xFF_FF_FF_FF,
+}
 
 
 
@@ -41,13 +54,10 @@ export class AreaFlagRender {
     drawFlagBitmap: FDrawFlagBitmap;
 
 
+     mAreaLayers:AreaLayers = {} as AreaLayers
 
     private mBitmapPointer: number;
-    private mLayersPointer: number
-    private mLayersDepthPointer: number
-    private mLayersColorsPointer: number
-    private mLayersVisibleFlagsPointer: number;
-    private mVisibleFlags: Uint32Array;
+    private drawFlagBitmapT: FDrawFlagBitmap;
 
     constructor(ctx: Context) {
         this.ctx = ctx
@@ -55,14 +65,19 @@ export class AreaFlagRender {
 
 
     async initV2(flagsFile: AreaFlagsFile){
-        const memorySize =  Math.ceil(flagsFile.getMemorySize() / (64 * 1024))+16
+        this.area = flagsFile
+
+        const bitmapByteSize = (flagsFile.mapWidth * flagsFile.mapHeight) << 2;
+
+
+        const memorySize =  Math.ceil((flagsFile.getMemorySize() + bitmapByteSize) / (64 * 1024))+24
         const memory = new WebAssembly.Memory({
             initial:memorySize,
             maximum:memorySize+10
         });
         const ll = new LineAllocator(memory,(64 * 1024)*5)
 
-        const bitmapByteSize = (flagsFile.mapWidth * flagsFile.mapHeight) << 2;
+
 
 
         this.mBitmapPointer = ll.alloc(bitmapByteSize)
@@ -70,34 +85,64 @@ export class AreaFlagRender {
 
         const layers = flagsFile.getLayers()
 
+        this.mAreaLayers.count      = layers.length
+        this.mAreaLayers.layers     = ll.newArray(layers.length)
+        this.mAreaLayers.depths     = ll.newArrayUInt32(layers.length)
+        this.mAreaLayers.masks      = ll.newArrayUInt32(layers.length)
+        this.mAreaLayers.maxCounts      = ll.newArrayUInt32(layers.length)
 
-        this.mLayersPointer = ll.newPtrArray(layers.length)
-        this.mLayersDepthPointer = ll.newPtrArray(layers.length)
-        this.mLayersColorsPointer = ll.newPtrArray(layers.length)
-
-        this.mLayersVisibleFlagsPointer = ll.newPtrArray(layers.length)
+        this.mAreaLayers.colors     = ll.newArray(layers.length)
 
 
-        this.mVisibleFlags = ll.getPointerArray(this.mLayersVisibleFlagsPointer,layers.length)
+        this.mAreaLayers.maxCounts.setValue(0,18)
+        this.mAreaLayers.maxCounts.setValue(1,5)
 
-        let layersArray =  ll.getPointerArray(this.mLayersPointer,layers.length)
-        let layersDepthArray =  ll.getPointerArray(this.mLayersPointer,layers.length)
-
+        let def_colors = [
+            DZ_DEFAULT_USAGE_COLORS_INT,
+            DZ_DEFAULT_VALUE_COLORS_INT,
+            DZ_DEFAULT_USAGE_COLORS_INT,
+            DZ_DEFAULT_VALUE_COLORS_INT
+        ]
+        this.mAreaLayers.dataLayers = []
 
         for (let i = 0; i < layers.length; i++) {
             const l = layers[i]
             const layerPointer = ll.alloc(l.array.byteLength)
-            ll.getPointerArray(layerPointer,l.array.length).set(l.array)
+            let array = ll.getPointerArray(layerPointer,l.array.length)
+            array.set(l.array) // copy data to wasm memory
+            this.mAreaLayers.dataLayers.push(array)
 
+            this.mAreaLayers.layers.setPtr(i,layerPointer)
+            this.mAreaLayers.depths.setValue(i,l.depth)
+            this.mAreaLayers.masks.setValue(i,BITMASK[l.depth]) // VISIBLE ALL
+            let dColors = def_colors[i]
 
-            layersDepthArray[i] = l.depth
-            layersArray[i] = layerPointer
+            let colors = ll.newArrayUInt32(32)
+            for (let j = 0; j < 32; j++) {
+                colors.setValue(j,dColors[j % dColors.length])
+            }
+
+            this.mAreaLayers.colors.setPtr(i,colors.ptr)
 
         }
+
+        this.imageData = new ImageData(new Uint8ClampedArray(memory.buffer, this.mBitmapPointer, bitmapByteSize), flagsFile.mapWidth, flagsFile.mapHeight);
+
+        let drawMapWasm = this.ctx.getResources().getBufferById(R.wasms.drawMap).getUInt8Array()
+        this.wasmInstance = await WebAssembly.instantiate(drawMapWasm, {env: {memory: memory}});
+
+        const exp = this.wasmInstance.instance.exports
+        this.mainFunction = exp.printAreaFlagsToBitmap as FPrintAreaFlagsToBitmap;
+        this.drawCircle = exp.drawFilledCircle as FDrawCircle
+        this.drawFlagBitmap = exp.drawFlagBitmap as FDrawFlagBitmap
+        this.drawFlagBitmapT = exp.drawFlagBitmapT as FDrawFlagBitmap
+
 
 
 
     }
+
+
 
 
     async init(area: AreaFlagsFile) {
@@ -166,10 +211,30 @@ export class AreaFlagRender {
             console.log("drawFilledCircle",Date.now()-time)
         }
 
+    }
 
+    drawToBitmap(masks:Array<number>, clip: Rect):number{
+        clip.clipClamp(0,0,this.area.mapWidth,this.area.mapHeight)
+        let al = this.mAreaLayers
+        let time = Date.now()
+        al.masks.setValue(0,masks[0])
+        al.masks.setValue(1,masks[1])
 
+        this.drawFlagBitmapT(
+            this.mBitmapPointer,
+            al.layers.ptr,
+            al.count,
+            al.depths.ptr,
+            al.masks.ptr,
+            al.maxCounts.ptr,
+            al.colors.ptr,
+            this.area.mapWidth,
+            clip.mLeft, clip.mTop, clip.mRight, clip.mBottom
 
-
+        )
+        let timeX = Date.now()-time
+        console.log("render_time",timeX)
+        return timeX
     }
 
     printAreaFlagsToBitmap(valueFlagsMask: number, usageFlagsMask: number, clip: Rect) {

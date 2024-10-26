@@ -311,7 +311,6 @@ export class AdapterAreaFlagsItems extends Adapter<TreeItem> {
     }
 
     updateVisibleFlags(value: VisibleFlags) {
-        console.log("updateVisibleFlags", value)
         this.mVisibleFlags = value
         this.updateOutput()
         this.notifyDataSetChanged()
