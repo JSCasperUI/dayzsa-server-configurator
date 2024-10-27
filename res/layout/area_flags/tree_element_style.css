@@ -39,10 +39,9 @@
     top: 0;
     left: 0;
     width: 54px;
-    background-color: hsl(240deg 29.54% 20.18% / 49%);
+    background-color: hsl(0deg 0% 18.9% / 73%);
     overflow: hidden;
     box-shadow: 1px 1px 14px 6px #20202278;
-    /* border: 1px solid hsl(0deg 1% 26% / 44%); */
     backdrop-filter: blur(7px);
     border-radius: 8px;
     display: flex;
@@ -50,9 +49,10 @@
     align-items: center;
     gap: 12px;
     padding-top: 8px;
-    padding-bottom: 8px;}
+    padding-bottom: 8px;
+}
 .af_tools_item {
-    background: #535353;
+    background: #09090994;
     width: 40px;
     height: 40px;
     border-radius: 8px;

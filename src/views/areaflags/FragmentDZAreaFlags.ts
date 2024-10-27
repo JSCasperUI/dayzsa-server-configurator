@@ -193,7 +193,7 @@ export class FragmentDZAreaFlags extends JFragment {
                     let radius = 250
 
                     let clip = new Rect(posX-radius,posY-radius, posX+radius, posY+radius)
-                    this.areaRender.drawCircle(posX,posY,radius,0,1,1)
+                    this.areaRender.drawCircle(posX,posY,radius,1,2,3)
                     // this.areaRender.printAreaFlagsToBitmap(this.mValueFlags,this.mUsageFlags,clip)
                     let time = this.areaRender.drawToBitmap([this.mUsageFlags,this.mValueFlags],clip)
 

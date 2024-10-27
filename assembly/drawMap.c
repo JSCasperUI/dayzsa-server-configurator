@@ -139,6 +139,8 @@ void setColors(uint32_t* mValueColors, uint32_t* mUsageColors) {
 #define LAYER_MASK 2
 #define LAYER_SHIFT_AMOUNT 3
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define CLAMP(n, lower, upper) (MAX(lower, MIN(n, upper)))
 
 
 
@@ -349,33 +351,58 @@ int drawFlagBitmap(
     return 0;
 }
 
-void clearPixel(int x, int y, uint32_t* mBuffer, int width, int height, int depth, uint32_t setBit,int line,int endianOffset,int shiftAmount) {
-    if (x >= 0 && x < width && y >= 0 && y < height) {
-        uint32_t bitPosition = (line + x) << shiftAmount;
-        mBuffer[bitPosition >> 5] &= ~(setBit << (endianOffset - (bitPosition % 32))) ;
-    }
-}
-void drawPixel(int x, int y, uint32_t* mBuffer, int width, int height, int depth, uint32_t setBit,int line,int endianOffset,int shiftAmount) {
-    if (x >= 0 && x < width && y >= 0 && y < height) {
-        uint32_t bitPosition = (line + x) << shiftAmount;  //  * valueBitLength;
-        mBuffer[bitPosition >> 5] |= (setBit <<  (endianOffset - (bitPosition % 32)));
-    }
-}
-
 void clearHorizontalLine(int x1, int x2, int y, uint32_t* mBuffer, int width, int height, int depth, uint32_t setBit,int endianOffset,int shiftAmount) {
     int line = (height - y - 1) * height;
+   x1 = CLAMP(x1, 0, width - 1);
+    x2 = CLAMP(x2, 0, width - 1);
+    y = CLAMP(y, 0, height - 1);
     for (int x = x1; x <= x2; x++) {
-        clearPixel(x, y, mBuffer, width, height, depth, setBit,line,endianOffset,shiftAmount);
+            uint32_t bitPosition = (line + x) << shiftAmount;
+            mBuffer[bitPosition >> 5] &= ~(setBit << (endianOffset - (bitPosition % 32))) ;
+        // clearPixel(x, y, mBuffer, width, height, depth, setBit,line,endianOffset,shiftAmount);
     }
 }
 
 
-
-void drawHorizontalLine(int x1, int x2, int y, uint32_t* mBuffer, int width, int height, int depth, uint32_t setBit,int endianOffset,int shiftAmount) {
-    int line = (height - y - 1) * height;
-    for (int x = x1; x <= x2; x++) {
-        drawPixel(x, y, mBuffer, width, height, depth, setBit,line,endianOffset,shiftAmount);
+void drawHorizontalLine(int x1, int x2, int y, uint32_t* mBuffer, int width, int height, int depth, uint32_t setBit,int endianOffset,int shiftAmount,uint32_t drawMode) {
+   
+    x1 = CLAMP(x1, 0, width);
+    x2 = CLAMP(x2, 0, width);
+    if (y>height-1 || y <0){
+        return;
     }
+    int line = (height - y - 1) * height;
+
+    switch (drawMode){
+    case 0:{ // стираем бит 
+        for (int x = x1; x < x2; x++) {
+            uint32_t bitPosition = (line + x) << shiftAmount; 
+            mBuffer[bitPosition >> 5] &= ~(setBit << (endianOffset - (bitPosition % 32))) ;
+        }
+        break;
+    }
+    case 1:{//рисуем бит 
+        for (int x = x1; x < x2; x++) {
+            uint32_t bitPosition = (line + x) << shiftAmount;  
+            mBuffer[bitPosition >> 5] |= (setBit <<  (endianOffset - (bitPosition % 32)));
+        }
+        break;
+    }
+     case 3:{ //рисуем бит и стираем другие
+        for (int x = x1; x <x2; x++) {
+            uint32_t bitPosition = (line + x) << shiftAmount; 
+            uint32_t mask = (1 << depth) - 1;  
+            uint32_t shift = (endianOffset - (bitPosition % 32));
+            bitPosition >>=5;
+            mBuffer[bitPosition] &= ~(mask << shift);
+            mBuffer[bitPosition] |= (setBit << shift);
+        }
+        break;
+    }
+    default:
+        break;
+    }
+
 }
 
 void drawFilledCircle(int xc, int yc, int radius, uint32_t* mBuffer, int width, int height, int depth, uint32_t setBit,uint32_t drawMode) {
@@ -386,12 +413,11 @@ void drawFilledCircle(int xc, int yc, int radius, uint32_t* mBuffer, int width, 
     int shiftAmount = fastLog2(depth);
 
 
-    if (drawMode == 1){ // Можно сделать ссылку на функцию, но впадлу мне, 100 байт не проблема
         while (y >= x) {
-            drawHorizontalLine(xc - x, xc + x, yc + y, mBuffer, width, height, depth, setBit,endianOffset,shiftAmount);
-            drawHorizontalLine(xc - x, xc + x, yc - y, mBuffer, width, height, depth, setBit,endianOffset,shiftAmount);
-            drawHorizontalLine(xc - y, xc + y, yc + x, mBuffer, width, height, depth, setBit,endianOffset,shiftAmount);
-            drawHorizontalLine(xc - y, xc + y, yc - x, mBuffer, width, height, depth, setBit,endianOffset,shiftAmount);
+            drawHorizontalLine(xc - x, xc + x, yc + y, mBuffer, width, height, depth, setBit,endianOffset,shiftAmount,drawMode);
+            drawHorizontalLine(xc - x, xc + x, yc - y, mBuffer, width, height, depth, setBit,endianOffset,shiftAmount,drawMode);
+            drawHorizontalLine(xc - y, xc + y, yc + x, mBuffer, width, height, depth, setBit,endianOffset,shiftAmount,drawMode);
+            drawHorizontalLine(xc - y, xc + y, yc - x, mBuffer, width, height, depth, setBit,endianOffset,shiftAmount,drawMode);
 
             x++;
 
@@ -403,21 +429,5 @@ void drawFilledCircle(int xc, int yc, int radius, uint32_t* mBuffer, int width, 
             }
         }
 
-    }else{
-       while (y >= x) {
-            clearHorizontalLine(xc - x, xc + x, yc + y, mBuffer, width, height, depth, setBit,endianOffset,shiftAmount);
-            clearHorizontalLine(xc - x, xc + x, yc - y, mBuffer, width, height, depth, setBit,endianOffset,shiftAmount);
-            clearHorizontalLine(xc - y, xc + y, yc + x, mBuffer, width, height, depth, setBit,endianOffset,shiftAmount);
-            clearHorizontalLine(xc - y, xc + y, yc - x, mBuffer, width, height, depth, setBit,endianOffset,shiftAmount);
 
-            x++;
-
-            if (d > 0) {
-                y--;
-                d = d + 4 * (x - y) + 10;
-            } else {
-                d = d + 4 * x + 6;
-            }
-        }
-    }
 }

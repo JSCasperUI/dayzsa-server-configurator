@@ -2,6 +2,7 @@ import {LayoutFragment, SPLIT_TYPE} from "@casperui/layoutfragment/widget/Layout
 import {RLayoutFragment} from "@casperui/layoutfragment/widget/R";
 import {FragmentDZAreaFlags} from "@dz/views/areaflags/FragmentDZAreaFlags";
 import {FragmentAreaMenu} from "@dz/views/areaflags/FragmentAreaMenu";
+import {BaseMapView} from "@dz/views/base/BaseMapView";
 
 
 export  class LayoutDistributorFragment extends LayoutFragment {
@@ -33,7 +34,7 @@ export  class LayoutDistributorFragment extends LayoutFragment {
         if (this.meta){
             switch (this.meta.type){
                 case "area_map":{
-                    fragment = new FragmentDZAreaFlags(this.getActivity())
+                    fragment = new BaseMapView(this.getActivity())
                     break
                 }
                 case "area_menu":{
