@@ -109,8 +109,8 @@ export class FragmentDZAreaFlags extends JFragment {
         this.mCordsTextView = this.byId(R.id.cords)
 
         const resize = (newWidth, newHeight) => {
-            let oldWidth = this.mCanvas.getWidth();
-            let oldHeight = this.mCanvas.getHeight();
+            let oldWidth = this.mCanvas.getCanvasWidth();
+            let oldHeight = this.mCanvas.getCanvasHeight();
 
             this.canvasView.getElement().style.imageRendering = "pixelated"
             let bRect = this.getFragmentView().getElement().getBoundingClientRect()
@@ -129,9 +129,9 @@ export class FragmentDZAreaFlags extends JFragment {
             const deltaX = (newWidth - oldWidth) / 2;
             const deltaY = (newHeight - oldHeight) / 2;
 
-            (this.canvasView.getElement() as HTMLCanvasElement).width = newWidth;
-            (this.canvasView.getElement() as HTMLCanvasElement).height = newHeight;
 
+            this.mCanvas.setCanvasWidth(newWidth);
+            this.mCanvas.setCanvasHeight(newHeight);
 
             this.mapMove.offsetX += deltaX;
             this.mapMove.offsetY += deltaY;
@@ -140,18 +140,11 @@ export class FragmentDZAreaFlags extends JFragment {
         }
 
         const updateNewScale = (zoom) => {
-            let w = canvas.getWidth()
-            let h = canvas.getHeight()
+            let w = canvas.getCanvasWidth()
+            let h = canvas.getCanvasHeight()
 
             let maxWH = Math.max(w, h)
-            let minZoom = (maxWH - maxWH / 2) / 4096;
-
-
-            // const mouseX = (event.offsetX - this.mapMove.offsetX) / this.mapMove.scale;
-            // const mouseY = (event.offsetY - this.mapMove.offsetY) / this.mapMove.scale;
-            //  this.mapMove.offsetX = event.offsetX - mouseX * this.mapMove.scale;
-            //  this.mapMove.offsetY = event.offsetY - mouseY * this.mapMove.scale;
-
+            let minZoom = (maxWH - maxWH / 2) / Math.max(this.mAreaFlags.mapWidth,this.mAreaFlags.mapHeight);
 
             const centerX = w / 2;
             const centerY = h / 2;
@@ -188,36 +181,25 @@ export class FragmentDZAreaFlags extends JFragment {
                 console.log('Ctrl + Mouse Down');
                 const onMouseMoveD = (moveEvent) => {
                         const mv = this.mapMove
-                        // this.mapMove.offsetX = moveEvent.clientX * this.dpi - this.mapMove.startX;
-                        // this.mapMove.offsetY = moveEvent.clientY * this.dpi - this.mapMove.startY;
-
                         let canvas = this.mCanvas
-                        let w = canvas.getWidth();
-                        let h = canvas.getHeight();
+                        let w = canvas.getCanvasWidth();
+                        let h = canvas.getCanvasHeight();
 
 
                     let posX = Math.round(((moveEvent.offsetX * this.dpi) - mv.offsetX)/mv.scale)
                     let posY = Math.round(((moveEvent.offsetY * this.dpi) - mv.offsetY)/mv.scale)
                     // posY = this.mAreaFlags.mapSize - posY
 
-                        console.log(mv.scale,posX,posY)
-
-                    let mw = this.mAreaFlags.mapWidth
-                        // if (!this.mAreaBitmap) return
-                        // let wSize = this.mAreaFlags.mapSize
                     let radius = 250
 
                     let clip = new Rect(posX-radius,posY-radius, posX+radius, posY+radius)
-                    this.areaRender.drawCircle(posX,posY,radius,this.areaRender.mAreaLayers.layers.getPtr(1),mw,mw,this.areaRender.mAreaLayers.depths.getValue(1),1<<1,0)
+                    this.areaRender.drawCircle(posX,posY,radius,0,1,1)
                     // this.areaRender.printAreaFlagsToBitmap(this.mValueFlags,this.mUsageFlags,clip)
                     let time = this.areaRender.drawToBitmap([this.mUsageFlags,this.mValueFlags],clip)
 
                     this.byId(R.id.time).setValue(time.toString())
-                        this.mAreaBitmap.setPixelsDitry(this.areaRender.imageData,clip)
-                    //
-                    //
-                    //
-                        this.draw();
+                    this.mAreaBitmap.setPixelsDitry(this.areaRender.getImageData(),clip)
+                    this.draw();
 
 
                 };
@@ -237,7 +219,6 @@ export class FragmentDZAreaFlags extends JFragment {
             this.mapMove.isDragging = true;
             this.mapMove.startX = event.clientX * this.dpi - this.mapMove.offsetX;
             this.mapMove.startY = event.clientY * this.dpi - this.mapMove.offsetY;
-
 
             document.body.style.userSelect = 'none';
             const onMouseUp = () => {
@@ -282,8 +263,8 @@ export class FragmentDZAreaFlags extends JFragment {
 
     clampOffset() {
 
-        let w = this.mCanvas.getWidth()
-        let h = this.mCanvas.getHeight()
+        let w = this.mCanvas.getCanvasWidth()
+        let h = this.mCanvas.getCanvasHeight()
 
         let borderX = w / 2
         let borderY = h / 2
@@ -299,8 +280,8 @@ export class FragmentDZAreaFlags extends JFragment {
 
     printCurrentCoordinates() {
         let canvas = this.mCanvas
-        let w = canvas.getWidth();
-        let h = canvas.getHeight();
+        let w = canvas.getCanvasWidth();
+        let h = canvas.getCanvasHeight();
 
         const centerX = w / 2;
         const centerY = h / 2;
@@ -340,8 +321,8 @@ export class FragmentDZAreaFlags extends JFragment {
             // this.mCanvas.scale(-4, -4)
         }
 
-        let w = canvas.getWidth()
-        let h = canvas.getHeight()
+        let w = canvas.getCanvasWidth()
+        let h = canvas.getCanvasHeight()
 
 
         this.mCanvas.resetMatrix()
@@ -366,7 +347,7 @@ export class FragmentDZAreaFlags extends JFragment {
         let time = this.areaRender.drawToBitmap([this.mUsageFlags,this.mValueFlags],clip)
 
         this.byId(R.id.time).setValue(time.toString())
-        this.mAreaBitmap.setPixelsDitry(this.areaRender.imageData,clip)
+        this.mAreaBitmap.setPixelsDitry(this.areaRender.getImageData(),clip)
 
 
         // this.printAreaFlagsToBitmap(this.mAreaBitmap, this.mValueFlags,this.mUsageFlags)

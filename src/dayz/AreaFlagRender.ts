@@ -10,12 +10,11 @@ import {
 
 import {LineAllocator, WPointerArrayOfPointers, WPointerArrayUInt32} from "@dz/dayz/wasm/helper";
 
-type FPrintAreaFlagsToBitmap = (bitmap: number, mValuesData: number, mUsageData: number, valueFlagsMask: number, usageFlagsMask: number, wSize: number, valueBitLength: number, clipLeft: number, clipTop: number, clipRight: number, clipBottom: number) => number
-
 type FDrawCircle = (xc: number, yx: number,radius:number, buffer: number, width: number, height: number, pixelSize: number, bit: number, mode: number) => number
 type FDrawFlagBitmap = (
-    output: number,layers: number, layersCount: number,layersPixelSizes:number, layersVisibleMasks: number,maxCounts:number,
-    layersFlagColors: number, originalWidth: number,  clipLeft: number, clipTop: number, clipRight: number, clipBottom: number) => number
+    output: number,layers: number, layersCount: number,layersPixelSizes:number, layersVisibleMasks: number,
+    maxCounts:number,layersFlagColors: number, originalWidth: number,originalHeight: number,
+    clipLeft: number, clipTop: number, clipRight: number, clipBottom: number) => number
 
 
 interface AreaLayers {
@@ -43,24 +42,26 @@ const BITMASK = {
 export class AreaFlagRender {
     private ctx: Context;
     private wasmInstance: WebAssembly.WebAssemblyInstantiatedSource;
-     mValuesData: Uint32Array;
-    private mUsageData: Uint32Array;
-    imageData: ImageData;
-    private bitmap: Uint8Array;
-    private mainFunction: FPrintAreaFlagsToBitmap;
-    private wSize: number;
+    private imageData: ImageData;
     private area: AreaFlagsFile;
-    drawCircle: FDrawCircle;
-    drawFlagBitmap: FDrawFlagBitmap;
+    private mDrawCircle: FDrawCircle;
+    private mDrawFlagBitmap: FDrawFlagBitmap;
 
 
-     mAreaLayers:AreaLayers = {} as AreaLayers
+    private mAreaLayers:AreaLayers = {} as AreaLayers
 
     private mBitmapPointer: number;
-    private drawFlagBitmapT: FDrawFlagBitmap;
 
     constructor(ctx: Context) {
         this.ctx = ctx
+    }
+
+    getImageData(): ImageData {
+        return this.imageData
+    }
+
+    setMaxFlagsCountOnLayer(layer:number,count:number):void{
+        this.mAreaLayers.maxCounts.setValue(layer,count)
     }
 
 
@@ -123,94 +124,29 @@ export class AreaFlagRender {
             }
 
             this.mAreaLayers.colors.setPtr(i,colors.ptr)
-
         }
 
         this.imageData = new ImageData(new Uint8ClampedArray(memory.buffer, this.mBitmapPointer, bitmapByteSize), flagsFile.mapWidth, flagsFile.mapHeight);
 
-        let drawMapWasm = this.ctx.getResources().getBufferById(R.wasms.drawMap).getUInt8Array()
-        this.wasmInstance = await WebAssembly.instantiate(drawMapWasm, {env: {memory: memory}});
+        const codeWasm = this.ctx.getResources().getBufferById(R.wasms.drawMap).getUInt8Array()
+        this.wasmInstance = await WebAssembly.instantiate(codeWasm, {env: {memory: memory}});
 
-        const exp = this.wasmInstance.instance.exports
-        this.mainFunction = exp.printAreaFlagsToBitmap as FPrintAreaFlagsToBitmap;
-        this.drawCircle = exp.drawFilledCircle as FDrawCircle
-        this.drawFlagBitmap = exp.drawFlagBitmap as FDrawFlagBitmap
-        this.drawFlagBitmapT = exp.drawFlagBitmapT as FDrawFlagBitmap
+        const exports = this.wasmInstance.instance.exports
 
-
-
+        this.mDrawCircle = exports.drawFilledCircle as FDrawCircle
+        this.mDrawFlagBitmap = exports.drawFlagBitmap as FDrawFlagBitmap
 
     }
 
 
 
-
-    async init(area: AreaFlagsFile) {
-        this.area = area
-        this.wSize = area.mapWidth;
-        const bitmapSize = (area.mapWidth * area.mapWidth) << 2;
-        const usageByteSize = area.mUsageFlagsArray.length << 2
-        const valuesByteSize = area.mValuesFlagsArray.length << 2
-        const initialValue =  Math.ceil((bitmapSize + usageByteSize + valuesByteSize) / (64 * 1024))+64
-
-        const memory = new WebAssembly.Memory({
-            initial:initialValue+32,
-            maximum:initialValue+64
-            });
-        let offset = (64 * 1024)*32
-        this.bitmap = new Uint8Array(memory.buffer, offset, bitmapSize); offset+=bitmapSize;
-
-        this.mUsageData = new Uint32Array(memory.buffer, offset, area.mUsageFlagsArray.length); offset+=usageByteSize;
-
-        const valuesPTR = offset
-        this.mValuesData = new Uint32Array(memory.buffer, offset, area.mValuesFlagsArray.length);offset+=valuesByteSize;
-
-        const valColorsPtr = offset
-        const usColorsPtr = offset + (5*4)
-
-
-        const valColors = new Uint32Array(memory.buffer, valColorsPtr, 5);
-        const usColors = new Uint32Array(memory.buffer, usColorsPtr, 16);
-
-        for (let i = 0; i < valColors.length; i++) {
-            valColors[i] = DZ_DEFAULT_VALUE_COLORS_INT[i]
-        }
-        for (let i = 0; i < usColors.length; i++) {
-            usColors[i] = DZ_DEFAULT_USAGE_COLORS_INT[i]
-        }
-
-        if (initialValue*(64*1024)<usColorsPtr){
-            console.log("EEEEEEEEEEEEEEEEE")
-        }
-
-        this.mUsageData.set(area.mUsageFlagsArray)
-        this.mValuesData.set(area.mValuesFlagsArray)
-        this.imageData = new ImageData(new Uint8ClampedArray(memory.buffer,  this.bitmap.byteOffset, bitmapSize), area.mapWidth, area.mapWidth);
-
-
-        let drawMapWasm = this.ctx.getResources().getBufferById(R.wasms.drawMap).getUInt8Array()
-        this.wasmInstance = await WebAssembly.instantiate(drawMapWasm, {
-            env: {
-                memory: memory
-            }
-        });
-        const exp = this.wasmInstance.instance.exports
-        this.mainFunction = exp.printAreaFlagsToBitmap as FPrintAreaFlagsToBitmap;
-        // @ts-ignore
-        exp.setColors(valColorsPtr,usColorsPtr)
-        this.drawCircle = exp.drawFilledCircle as FDrawCircle
-        this.drawFlagBitmap = exp.drawFlagBitmap as FDrawFlagBitmap
-
-
-
-        // @ts-ignore
-        window.TADAM = ()=>{
-            let time = Date.now()
-            // @ts-ignore
-            exp.drawFilledCircle(2048,2048,500,valuesPTR,area.mapWidth,area.mapWidth,4,1<<1,0);
-            console.log("drawFilledCircle",Date.now()-time)
-        }
-
+    drawCircle(x:number, y:number,radius:number,layer:number,flag:number,mode:number):void{
+        this.mDrawCircle(
+            x,y,radius,this.mAreaLayers.layers.getPtr(layer),
+            this.area.mapWidth,this.area.mapHeight,
+            this.mAreaLayers.depths.getPtr(layer),
+            (1 << flag),mode
+        )
     }
 
     drawToBitmap(masks:Array<number>, clip: Rect):number{
@@ -220,7 +156,7 @@ export class AreaFlagRender {
         al.masks.setValue(0,masks[0])
         al.masks.setValue(1,masks[1])
 
-        this.drawFlagBitmapT(
+        this.mDrawFlagBitmap(
             this.mBitmapPointer,
             al.layers.ptr,
             al.count,
@@ -229,6 +165,7 @@ export class AreaFlagRender {
             al.maxCounts.ptr,
             al.colors.ptr,
             this.area.mapWidth,
+            this.area.mapHeight,
             clip.mLeft, clip.mTop, clip.mRight, clip.mBottom
 
         )
@@ -237,20 +174,4 @@ export class AreaFlagRender {
         return timeX
     }
 
-    printAreaFlagsToBitmap(valueFlagsMask: number, usageFlagsMask: number, clip: Rect) {
-
-
-        clip.clipClamp(0,0,this.area.mapWidth,this.area.mapWidth)
-        let time = Date.now()
-        let result = this.mainFunction(
-            this.bitmap.byteOffset,
-            this.mValuesData.byteOffset,
-            this.mUsageData.byteOffset,
-            valueFlagsMask,
-            usageFlagsMask,
-            this.wSize,
-            this.area.mValueFlagsBitLength,
-            clip.mLeft, clip.mTop, clip.mRight, clip.mBottom)
-        console.log("result",result,"mytime",Date.now()-time)
-    }
 }
