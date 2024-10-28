@@ -9,6 +9,7 @@ import {R} from "@dz/R";
 import {Paint} from "@casperui/core/graphics/Paint";
 import {Rect} from "@casperui/core/graphics/Rect";
 import {MainActivity} from "@dz/MainActivity";
+import {cordToTile} from "@dz/space/MapUtils";
 
 // 256*60
 export interface MapDetails {
@@ -239,26 +240,7 @@ export class BaseMapView extends JFragment {
 
     protected onDraw(canvas: Canvas) {
     }
-    calculateTilesAtZoomLevel(zoomLevel: number): {tilesX: number, tilesY: number} {
-        const worldWidth = 15360;
-        const worldHeight = 15360;
-        const tileSize = 256;
 
-        const pixelToMeterRatio = 15360 / 4096;  // 1 пиксель = 3.75 метра
-
-        // Общая ширина и высота карты в тайлах на уровне зума 0
-        const totalTilesX = Math.ceil(worldWidth / (tileSize * pixelToMeterRatio));
-        const totalTilesY = Math.ceil(worldHeight / (tileSize * pixelToMeterRatio));
-
-        // Количество тайлов на текущем уровне зума
-        const tilesXAtZoomLevel = totalTilesX * Math.pow(2, zoomLevel);
-        const tilesYAtZoomLevel = totalTilesY * Math.pow(2, zoomLevel);
-
-        return {
-            tilesX: tilesXAtZoomLevel,
-            tilesY: tilesYAtZoomLevel
-        };
-    }
     private draw() {
         this.clampOffset()
         this.printCurrentCoordinates()
@@ -277,100 +259,20 @@ export class BaseMapView extends JFragment {
         let w2 = Math.floor(this.mWidth / 2)
 
 
-
-
-        const pixelToMeterRatio = 15360 / 4096;
-        const visiblePixels = this.mWidth / this.mapMove.scale;
-        const visibleMetersWidth = visiblePixels * pixelToMeterRatio;
-
-        const worldMetersWidth = 15360;
-        const zoomLevel = Math.log2(worldMetersWidth / visibleMetersWidth);
-        console.log(`Текущий уровень зума: ${zoomLevel}`);
-
-        // canvas.drawRectC(w2 - 256, h2 - 256, w2 + 256, h2 + 256, this.p)
-        let mv = this.mapMove
-
         this.onDraw(this.mCanvas);
-        let worldWidth = 4096
-
-
-        let zoomScale = Math.max(1,Math.ceil(zoomLevel))
-        let cellCount = 6
-        let cellWidth = zoomScale*512/(1<<zoomScale-1)//worldWidth/cellCount
 
 
 
-        const centerX = this.mWidth / 2;
-        const centerY = this.mHeight / 2;
 
-        let worldCenterX = ((centerX - this.mapMove.offsetX) / this.mapMove.scale);
-        let worldCenterY = ((centerY - this.mapMove.offsetY) / this.mapMove.scale);
-
-        let gridCenterX = Math.ceil(worldCenterX / cellWidth) * cellWidth
-        let gridCenterY = Math.ceil(worldCenterY / cellWidth) * cellWidth
-
-        let tileSize = cellWidth
-        for (let y = -2; y < 2; y++) {
-            let cordY = gridCenterY + (y * tileSize)
-            for (let x = -2; x < 2; x++) {
-                let cordX = gridCenterX + (x * tileSize)
-                canvas.drawRectC(cordX,cordY, cordX+tileSize, cordY+tileSize, this.p)
-            }
-        }
         this.mCanvas.resetMatrix()
 
-        canvas.drawText(`offsetX: ${this.mapMove.offsetX}`,100,240,this.mTextPaint)
-        canvas.drawText(`gridCenterX: ${gridCenterX}  ${cellWidth}`,100,260,this.mTextPaint)
-        canvas.drawText(`zoomLevel: ${zoomLevel} ${visibleMetersWidth}`,100,280,this.mTextPaint)
 
 
-        // canvas.drawRectC(0, 0, posX, posY, this.p)
-        console.log(worldCenterX, worldCenterY)
-
-
-        // canvas.drawHardLine(0, h2, this.mWidth, h2, this.p)
-        // canvas.drawHardLine(w2, 0, w2, this.mHeight, this.p)
-        // this.drawTiles()
+        canvas.drawHardLine(0, h2, this.mWidth, h2, this.p)
+        canvas.drawHardLine(w2, 0, w2, this.mHeight, this.p)
 
 
 
-    }
-
-    drawTiles() {
-        const tileSize = 256; // Размер одного тайла в пикселях
-        const scale = this.mapMove.scale; // Текущий масштаб карты
-        const canvasWidth = this.mCanvas.getCanvasWidth();
-        const canvasHeight = this.mCanvas.getCanvasHeight();
-
-        // Рассчитываем размер тайла с учетом текущего масштаба
-        const scaledTileSize = tileSize * scale;
-
-        // Рассчитываем видимые границы карты в координатах карты (метры)
-        const visibleMapWidth = canvasWidth / scale;
-        const visibleMapHeight = canvasHeight / scale;
-
-        // Определяем координаты верхнего левого угла видимой области
-        const startX = Math.floor(this.mapMove.offsetX / scaledTileSize);
-        const startY = Math.floor(this.mapMove.offsetY / scaledTileSize);
-
-        // Определяем количество тайлов, которые нужно отрисовать по X и Y
-        const tilesX = Math.ceil(visibleMapWidth / scaledTileSize);
-        const tilesY = Math.ceil(visibleMapHeight / scaledTileSize);
-
-        // Проходим по всем видимым тайлам
-        for (let y = startY; y < startY + tilesY; y++) {
-            for (let x = startX; x < startX + tilesX; x++) {
-                // Вычисляем координаты текущего тайла
-                const tileX = x * scaledTileSize - this.mapMove.offsetX;
-                const tileY = y * scaledTileSize - this.mapMove.offsetY;
-
-                // Отрисовываем тайл
-                this.mCanvas.drawRectC(tileX, tileY, tileX + scaledTileSize, tileY + scaledTileSize, this.p);
-
-                // (Опционально) Можно отрисовать номер тайла для тестирования
-                this.mCanvas.drawText(`(${x},${y})`, tileX + 10, tileY + 20, this.mTextPaint);
-            }
-        }
     }
 
 
