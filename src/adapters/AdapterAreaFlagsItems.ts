@@ -124,7 +124,7 @@ export class AdapterAreaFlagsItems extends Adapter<TreeItem> {
 
 
     createViewHolder(parent: View, viewType: number): TreeItem {
-        let v = parent.context.getInflater().inflate(R.layout.area_flags.tree_element, true)
+        let v = parent.ctx().getInflater().inflate(R.layout.area_flags.tree_element, true)
         let exp = (index) => {
             this.mTreeOutput[index].isExpanded = !this.mTreeOutput[index].isExpanded;
             this.updateOutput()
@@ -179,14 +179,14 @@ export class AdapterAreaFlagsItems extends Adapter<TreeItem> {
 
     private makeTagLists(data: BXNodeContent) {
 
-        this.mTreeData = new TreeNode("Area Flags", null, R.icons.arrow_down, null, null, null, false)
+        this.mTreeData = new TreeNode("DayZ Flags map", null, R.icons.ic_params, null, null, null, false)
         this.mTreeData.isExpanded = true
 
         const uColors = DZ_DEFAULT_USAGE_COLORS_DEF
         const vColors = DZ_DEFAULT_VALUE_COLORS_DEF
-        this.mTreeData.addChild(new TreeNode("Image map", null, R.icons.ic_list, (isVisible) => {
+        this.mTreeData.addChild(new TreeNode("Image map", null, R.icons.image, (isVisible) => {
             this.mVisibleFlags.mapImage = isVisible
-        }, ()=>this.mVisibleFlags.mapImage,null , true))
+        }, ()=>this.mVisibleFlags.mapImage,"#38db53" , true))
         const flags = this.mVisibleFlags
         for (const child of data.children) {
 

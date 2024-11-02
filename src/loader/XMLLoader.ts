@@ -15,7 +15,10 @@ export class XMLLoader {
 
             let  node = parseXMLString(await data.text())
             let dConfig = this.config.getConfig(node.tag)
-            if (dConfig) dConfig.setValue(node)
+            if (dConfig) {
+                console.log("FOND TAG",node.tag)
+                dConfig.setValue(node)
+            }
 
 
         }else if (filePath.endsWith(".map")){

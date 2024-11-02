@@ -1,4 +1,3 @@
-import {MapInfo} from "@dz/dayz/types/MapInfo";
 import {ByteBufferOffset} from "@casperui/core/io/ByteBufferOffset";
 
 interface LayerInfo {
@@ -7,16 +6,15 @@ interface LayerInfo {
 }
 
 export class AreaFlagsFile {
-    mBuffer: DataView
-    mapWidth = 4096
-    mapHeight = 4096
-    worldWidth = 256 * 60
-    worldHeight = 256 * 60
+    mMapWidth = 4096
+    mMapHeight = 4096
+    mWorldWidth = 256 * 60
+    mWorldHeight = 256 * 60
     mValueFlagsBitLength = 0
     mUsageFlagsBitLength = 0
     mValuesFlagsArray: Uint32Array
     mUsageFlagsArray: Uint32Array
-    layers: Array<LayerInfo> = []
+    mLayers: Array<LayerInfo> = []
 
 
     private mFlagsByteSize: number = 0
@@ -26,47 +24,55 @@ export class AreaFlagsFile {
     }
 
     getLayers(): Array<LayerInfo> {
-        return this.layers
+        return this.mLayers
     }
 
     constructor(buf: ArrayBuffer) {
         if (!buf) {
             return
         }
-        this.mBuffer = new DataView(buf);
-        const mBuf = new ByteBufferOffset(buf, 0, buf.byteLength)
-        let area = this.mapWidth * this.mapHeight;
-        let offset = 0
+        const buffer = new ByteBufferOffset(buf, 0, buf.byteLength)
+        const area = this.mMapWidth * this.mMapHeight;
 
-        this.mapWidth = mBuf.read32LE()
-        this.mapHeight = mBuf.read32LE()
-        this.worldWidth = mBuf.read32LE()
-        this.worldHeight = mBuf.read32LE()
+        this.mMapWidth = buffer.read32LE()
+        this.mMapHeight = buffer.read32LE()
+        this.mWorldWidth = buffer.read32LE()
+        this.mWorldHeight = buffer.read32LE()
 
-        while (mBuf.hasRemaining()) {
-            let depth = mBuf.read32LE();
+        while (buffer.hasRemaining()) {
+            let depth = buffer.read32LE();
             let itemsCount = (area * depth) >> 5
-            let array = mBuf.readUInt32Array(itemsCount)
+            let array = buffer.readUInt32Array(itemsCount)
 
-            this.layers.push({
+            if (depth != 32){ // convert to 32 bit depth
+                let endianOffset = 32 - depth
+                let mask = ((1 << depth) - 1)
+                let shiftAmount = Math.log2(depth)
+
+                let newArray = new Uint32Array(this.mMapWidth * this.mMapHeight)
+                for (let y = 0; y < this.mMapHeight; y++) {
+                    let line = y * this.mMapWidth
+                    for (let x = 0; x < this.mMapWidth; x++) {
+                        let index =  line + x;
+                        let bitPosition = index << shiftAmount
+                        const arrayIndex = bitPosition >> 5;
+                        let offset = (endianOffset - (bitPosition % 32))
+                        let value = (array[arrayIndex] >> (endianOffset - (bitPosition % 32))) & mask
+
+                        newArray[index] = value
+                    }
+                }
+                depth = 32
+                itemsCount = (area * depth) >> 5
+                array = newArray
+            }
+
+            this.mLayers.push({
                 depth: depth,
                 array: array
             })
             this.mFlagsByteSize += itemsCount << 2
         }
-
-        this.mUsageFlagsBitLength = this.mBuffer.getInt32(16, true)
-        // let offset = this.mapSize * this.mapSize * this.mUsageFlagsBitLength / 8 + 20
-        this.mValueFlagsBitLength = this.mBuffer.getInt32(offset, true)
-
-
-        let mUsageLength = area * this.mUsageFlagsBitLength >> 5
-        let mValuesLength = area * this.mValueFlagsBitLength >> 5
-
-
-        this.mUsageFlagsArray = new Uint32Array(this.mBuffer.buffer, 20, mUsageLength);
-        this.mValuesFlagsArray = new Uint32Array(this.mBuffer.buffer, 24 + (mUsageLength << 2), mValuesLength);
-
 
     }
 }

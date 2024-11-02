@@ -10,7 +10,7 @@ import {
 
 import {LineAllocator, WPointerArrayOfPointers, WPointerArrayUInt32} from "@dz/dayz/wasm/helper";
 
-type FDrawCircle = (xc: number, yx: number,radius:number, buffer: number, width: number, height: number, pixelSize: number, bit: number, mode: number) => number
+type FDrawCircle = (xc: number, yx: number,radius:number, buffer: number, width: number, height: number, bit: number, mode: number) => number
 type FDrawFlagBitmap = (
     output: number,layers: number, layersCount: number,layersPixelSizes:number, layersVisibleMasks: number,
     maxCounts:number,layersFlagColors: number, originalWidth: number,originalHeight: number,
@@ -40,10 +40,10 @@ const BITMASK = {
 
 
 export class AreaFlagRender {
-    private ctx: Context;
-    private wasmInstance: WebAssembly.WebAssemblyInstantiatedSource;
-    private imageData: ImageData;
-    private area: AreaFlagsFile;
+    private mContext: Context;
+    private mWasmInstance: WebAssembly.WebAssemblyInstantiatedSource;
+    private mImageData: ImageData;
+    private mArea: AreaFlagsFile;
     private mDrawCircle: FDrawCircle;
     private mDrawFlagBitmap: FDrawFlagBitmap;
 
@@ -53,11 +53,11 @@ export class AreaFlagRender {
     private mBitmapPointer: number;
 
     constructor(ctx: Context) {
-        this.ctx = ctx
+        this.mContext = ctx
     }
 
     getImageData(): ImageData {
-        return this.imageData
+        return this.mImageData
     }
 
     setMaxFlagsCountOnLayer(layer:number,count:number):void{
@@ -66,9 +66,9 @@ export class AreaFlagRender {
 
 
     async initV2(flagsFile: AreaFlagsFile){
-        this.area = flagsFile
+        this.mArea = flagsFile
 
-        const bitmapByteSize = (flagsFile.mapWidth * flagsFile.mapHeight) << 2;
+        const bitmapByteSize = (flagsFile.mMapWidth * flagsFile.mMapHeight) << 2;
 
 
         const memorySize =  Math.ceil((flagsFile.getMemorySize() + bitmapByteSize) / (64 * 1024))+24
@@ -90,7 +90,7 @@ export class AreaFlagRender {
         this.mAreaLayers.layers     = ll.newArray(layers.length)
         this.mAreaLayers.depths     = ll.newArrayUInt32(layers.length)
         this.mAreaLayers.masks      = ll.newArrayUInt32(layers.length)
-        this.mAreaLayers.maxCounts      = ll.newArrayUInt32(layers.length)
+        this.mAreaLayers.maxCounts  = ll.newArrayUInt32(layers.length)
 
         this.mAreaLayers.colors     = ll.newArray(layers.length)
 
@@ -126,12 +126,12 @@ export class AreaFlagRender {
             this.mAreaLayers.colors.setPtr(i,colors.ptr)
         }
 
-        this.imageData = new ImageData(new Uint8ClampedArray(memory.buffer, this.mBitmapPointer, bitmapByteSize), flagsFile.mapWidth, flagsFile.mapHeight);
+        this.mImageData = new ImageData(new Uint8ClampedArray(memory.buffer, this.mBitmapPointer, bitmapByteSize), flagsFile.mMapWidth, flagsFile.mMapHeight);
 
-        const codeWasm = this.ctx.getResources().getBufferById(R.wasms.drawMap).getUInt8Array()
-        this.wasmInstance = await WebAssembly.instantiate(codeWasm, {env: {memory: memory}});
+        const codeWasm = this.mContext.getResources().getBufferById(R.wasms.drawMap).getUInt8Array()
+        this.mWasmInstance = await WebAssembly.instantiate(codeWasm, {env: {memory: memory}});
 
-        const exports = this.wasmInstance.instance.exports
+        const exports = this.mWasmInstance.instance.exports
 
         this.mDrawCircle = exports.drawFilledCircle as FDrawCircle
         this.mDrawFlagBitmap = exports.drawFlagBitmap as FDrawFlagBitmap
@@ -143,14 +143,13 @@ export class AreaFlagRender {
     drawCircle(x:number, y:number,radius:number,layer:number,flag:number,mode:number):void{
         this.mDrawCircle(
             x,y,radius,this.mAreaLayers.layers.getPtr(layer),
-            this.area.mapWidth,this.area.mapHeight,
-            this.mAreaLayers.depths.getPtr(layer),
+            this.mArea.mMapWidth,this.mArea.mMapHeight,
             (1 << flag),mode
         )
     }
 
     drawToBitmap(masks:Array<number>, clip: Rect):number{
-        clip.clipClamp(0,0,this.area.mapWidth,this.area.mapHeight)
+        clip.clipClamp(0,0,this.mArea.mMapWidth,this.mArea.mMapHeight)
         let al = this.mAreaLayers
         let time = Date.now()
         al.masks.setValue(0,masks[0])
@@ -164,8 +163,8 @@ export class AreaFlagRender {
             al.masks.ptr,
             al.maxCounts.ptr,
             al.colors.ptr,
-            this.area.mapWidth,
-            this.area.mapHeight,
+            this.mArea.mMapWidth,
+            this.mArea.mMapHeight,
             clip.mLeft, clip.mTop, clip.mRight, clip.mBottom
 
         )

@@ -21,7 +21,6 @@ export class TableView extends View {
 
         this.adapter = new TableViewAdapter(context)
 
-        this.inflater = context.getInflater()
         // this.inflater.inflate(R.layout.widgets.tableview.main, false, this, true)
 
         // this.appendAttributes(attributes)
@@ -165,7 +164,7 @@ export class TableView extends View {
             let style = `flex-basis: ${size};`
             if (size.endsWith("px"))
                 style+="flex-shrink: 0;"
-            let view = this.inflater.inflate(R.layout.table.header_item)
+            let view = this.ctx().getInflater().inflate(R.layout.table.header_item)
             let sortIcon = R.icons.sort;
             if (this.currentSortKey === this.keys[i]) {
                 sortIcon = this.currentSortOrder === 1 ? R.icons.sort_up : R.icons.sort_down;

@@ -34,6 +34,7 @@ export class FragmentAreaMenu extends JFragment {
         })
 
         config.mLists.observe(this,value => {
+            console.log("setData",value)
             this.mAdapter.setData(value)
             this.mAdapter.notifyDataSetChanged()
         })

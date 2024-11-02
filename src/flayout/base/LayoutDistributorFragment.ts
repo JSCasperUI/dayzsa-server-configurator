@@ -1,8 +1,7 @@
 import {LayoutFragment, SPLIT_TYPE} from "@casperui/layoutfragment/widget/LayoutFragment";
 import {RLayoutFragment} from "@casperui/layoutfragment/widget/R";
-import {FragmentDZAreaFlags} from "@dz/views/areaflags/FragmentDZAreaFlags";
 import {FragmentAreaMenu} from "@dz/views/areaflags/FragmentAreaMenu";
-import {BaseMapView} from "@dz/views/base/BaseMapView";
+import {FragmentAreaFlags} from "@dz/views/areaflags/FragmentAreaFlags";
 
 
 export  class LayoutDistributorFragment extends LayoutFragment {
@@ -18,7 +17,7 @@ export  class LayoutDistributorFragment extends LayoutFragment {
 
     onCreateView(inflater, container) {
         if (this.isContentConstructor) {
-            return this.getContext().getInflater().inflate(RLayoutFragment.layout.main,true,null,false)
+            return this.ctx().getInflater().inflate(RLayoutFragment.layout.main,true,null,false)
         }
         return super.onCreateView(inflater, container);
     }
@@ -34,7 +33,7 @@ export  class LayoutDistributorFragment extends LayoutFragment {
         if (this.meta){
             switch (this.meta.type){
                 case "area_map":{
-                    fragment = new BaseMapView(this.getActivity())
+                    fragment = new FragmentAreaFlags(this.getActivity())
                     break
                 }
                 case "area_menu":{

@@ -16,20 +16,20 @@ export interface MapDetails {
     worldWidth: number,
     worldHeight: number,
     mapWidth: number,
-    mapHeight: number
+    mapHeight: number,scaleFactor:number
+}
+export interface Point {
+    x:number,
+    y:number
 }
 
 export class BaseMapView extends JFragment {
 
     private mCanvas: Canvas
-    private mValueFlags = 0xFF //tiers 8 bit
-    private mUsageFlags = 0xFFFFFF// 32 bit
     private MAX_ZOOM = 40
-    private zoomLevels = [0.20,0.25, 0.5, 1, 2, 4, 8, 16, 32, 64];
-    private currentZoomLevel = 0;  // Начальный уровень зума (например, 1x)
 
 
-    private isDrawMapImage: boolean = true;
+    protected isDrawMapImage: boolean = true;
 
 
     onCreateView(inflater: BXMLInflater, container: View): View {
@@ -43,13 +43,17 @@ export class BaseMapView extends JFragment {
 
     private p = new Paint()
     private mTextPaint = new Paint()
-    private mMapRect = new Rect(0, 0, 4096, 4096)
+    protected mMapRect = new Rect(0, 0, 4096, 4096)
 
     private mapMove = {
         maxOffsetX: 0,
         maxOffsetY: 0,
         offsetX: -500,
         offsetY: -500,
+        worldX:0,
+        worldY:0,
+        mapX:0,
+        mapY:0,
         startX: 0,
         startY: 0,
         scale: 0.3,
@@ -63,12 +67,11 @@ export class BaseMapView extends JFragment {
         worldWidth: 256 * 60,
         worldHeight: 256 * 60,
         mapWidth: 4096,
-        mapHeight: 4096
+        mapHeight: 4096,
+        scaleFactor:4096/(256 * 60)
+
     }
 
-    private zoomLevel = 1.0; // Изначально зум на 1x (стандартный масштаб)
-    private minZoom = 0.1;   // Минимальный зум (можно настроить)
-    private maxZoom = 40;    // Максимальный зум
 
     private resizeCanvas() {
         let oldWidth = this.mCanvas.getCanvasWidth();
@@ -114,9 +117,9 @@ export class BaseMapView extends JFragment {
         this.mTextPaint.setStyle(Paint.FILL)
         this.dpi = window.devicePixelRatio || 1
         this.p.setStyle(Paint.STROKE)
-        this.p.setStrokeColor("rgba(255,163,128,0.8)")//7C
+        this.p.setStrokeColor("rgba(255,163,128,0.4)")//7C
         // this.p.setStrokeColor("rgba(255,163,128,0.4)")//7C
-        this.p.setStrokeWidth(2)
+        this.p.setStrokeWidth(1)
 
         this.canvasView = this.byId(R.id.canvas)
         this.mCanvas = new Canvas(this.canvasView)
@@ -186,62 +189,61 @@ export class BaseMapView extends JFragment {
             // canvas.style.cursor = 'grabbing';
         });
 
-        let lvConfig = (this.getActivity() as MainActivity).mBaseConfigVM;
-        lvConfig.mAreaFlagBinary.observe(this, value => {
-            // this.loadAreaFlagData(value)
-        })
-        lvConfig.mAreaFlagMask.observe(this, value => {
-            this.mValueFlags = value.visibleValueFlagsMask
-            this.mUsageFlags = value.visibleUsageFlagsMask
-            this.isDrawMapImage = value.mapImage
-            this.draw()
-        })
-
-        // lvConfig.mAreaFlagHoverEvent.observe(this,value => {
-        //     if (!this.mPreviewBitmap) return
-        //     this.printAreaFlagsToBitmapPreview(this.mPreviewBitmap,value.valueMask, value.usageMask)
-        //     this.draw()
-        // })
-
 
     }
+
+
 
     private clampOffset() {
-        let w = this.mCanvas.getCanvasWidth()
-        let h = this.mCanvas.getCanvasHeight()
 
-        let borderX = w / 2
-        let borderY = h / 2
-
-        let sX = (this.mMapRect.getWidth()) * this.mapMove.scale
-        let sY = (this.mMapRect.getHeight()) * this.mapMove.scale
-
-        const maxOffsetX = w - sX - borderX;
-        const maxOffsetY = h - sY - borderY;
-        this.mapMove.offsetX = Math.min(borderX, Math.max(maxOffsetX, this.mapMove.offsetX));
-        this.mapMove.offsetY = Math.min(borderY, Math.max(maxOffsetY, this.mapMove.offsetY));
-    }
-
-    printCurrentCoordinates() {
-        let canvas = this.mCanvas
         const centerX = this.mWidth / 2;
         const centerY = this.mHeight / 2;
 
-        const worldCenterX = (centerX - this.mapMove.offsetX) / this.mapMove.scale;
-        const worldCenterY = (centerY - this.mapMove.offsetY) / this.mapMove.scale;
+        let borderX = centerX
+        let borderY = centerY
+
+        let sX = this.mMap.mapWidth * this.mapMove.scale
+        let sY = this.mMap.mapHeight * this.mapMove.scale
+
+
+
+        const maxOffsetX = this.mWidth - sX - borderX;
+        const maxOffsetY = this.mHeight - sY - borderY;
+
 
         const scaleFactor = this.mMap.worldWidth / this.mMap.mapWidth;
-        const worldX = (worldCenterX * scaleFactor).toFixed(4);
-        const worldY = (this.mMap.worldWidth - (worldCenterY * scaleFactor)).toFixed(4);
 
-        this.mCordsTextView.setValue(`${worldX}, ${worldY},${this.mapMove.scale}`)
 
+
+
+        this.mapMove.offsetX = Math.min(borderX, Math.max(maxOffsetX, this.mapMove.offsetX));
+        this.mapMove.offsetY = Math.min(borderY, Math.max(maxOffsetY, this.mapMove.offsetY));
+
+        const localCenterX = (centerX - this.mapMove.offsetX) / this.mapMove.scale;
+        const localCenterY = (centerY - this.mapMove.offsetY) / this.mapMove.scale;
+
+        this.mapMove.mapX = localCenterX;
+        this.mapMove.mapY =  localCenterY
+        this.mapMove.worldX = localCenterX * scaleFactor;
+        this.mapMove.worldY =  this.mMap.worldWidth - (localCenterY * scaleFactor)
+
+    }
+
+    getCanvasCoords(globalX:number,globalY:number):Point{
+        let localX = this.mMap.scaleFactor * globalX
+        let localY = this.mMap.mapHeight - (this.mMap.scaleFactor * globalY)
+        return {x:localX,y:localY}
+    }
+
+
+    printCurrentCoordinates() {
+        this.mCordsTextView.setValue(`${this.mapMove.worldX.toFixed(4)}, ${this.mapMove.worldY.toFixed(4)}`)
     }
 
     protected onDraw(canvas: Canvas) {
     }
 
-    private draw() {
+    protected draw() {
         this.clampOffset()
         this.printCurrentCoordinates()
         let canvas = this.mCanvas
@@ -260,6 +262,7 @@ export class BaseMapView extends JFragment {
 
 
         this.onDraw(this.mCanvas);
+
 
 
 

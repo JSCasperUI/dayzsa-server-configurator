@@ -20,7 +20,7 @@ class DynamicHolder extends ViewHolder {
             let style = `flex-basis: ${size};`
             if (size.endsWith("px"))
                 style+="flex-shrink: 0;"
-            let view = new View(this.mHolder.context,"div",{style:style})
+            let view = new View(this.mHolder.ctx(),"div",{style:style})
 
             this.cells.push(view)
             this.mHolder.addView(view)

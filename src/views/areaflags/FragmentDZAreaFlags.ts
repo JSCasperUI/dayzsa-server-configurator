@@ -144,7 +144,7 @@ export class FragmentDZAreaFlags extends JFragment {
             let h = canvas.getCanvasHeight()
 
             let maxWH = Math.max(w, h)
-            let minZoom = (maxWH - maxWH / 2) / Math.max(this.mAreaFlags.mapWidth,this.mAreaFlags.mapHeight);
+            let minZoom = (maxWH - maxWH / 2) / Math.max(this.mAreaFlags.mMapWidth,this.mAreaFlags.mMapHeight);
 
             const centerX = w / 2;
             const centerY = h / 2;
@@ -289,9 +289,9 @@ export class FragmentDZAreaFlags extends JFragment {
         const worldCenterX = (centerX - this.mapMove.offsetX) / this.mapMove.scale;
         const worldCenterY = (centerY - this.mapMove.offsetY) / this.mapMove.scale;
 
-        const scaleFactor = this.mAreaFlags.worldWidth / this.mAreaFlags.mapWidth;
+        const scaleFactor = this.mAreaFlags.mWorldWidth / this.mAreaFlags.mMapWidth;
         const worldX = (worldCenterX * scaleFactor).toFixed(4);
-        const worldY = (this.mAreaFlags.worldWidth - (worldCenterY * scaleFactor)).toFixed(4);
+        const worldY = (this.mAreaFlags.mWorldWidth - (worldCenterY * scaleFactor)).toFixed(4);
 
         this.mCordsTextView.setValue(`${worldX}, ${worldY}`)
 
@@ -338,7 +338,7 @@ export class FragmentDZAreaFlags extends JFragment {
 
     redrawArea(){
         if (!this.mAreaBitmap) return
-        let wSize = this.mAreaFlags.mapWidth
+        let wSize = this.mAreaFlags.mMapWidth
 
         let clip = new Rect(0,0, wSize, wSize)
         // this.areaRender.printAreaFlagsToBitmap(this.mValueFlags,this.mUsageFlags,clip)
@@ -359,18 +359,18 @@ export class FragmentDZAreaFlags extends JFragment {
         if (!area) return
 
 
-        this.areaRender = new AreaFlagRender(this.getContext())
+        this.areaRender = new AreaFlagRender(this.ctx())
         await this.areaRender.initV2(area)
         this.mAreaFlags = area
 
 
-        this.mapRect.mRight = this.mAreaFlags.mapWidth
-        this.mapRect.mBottom = this.mAreaFlags.mapWidth
+        this.mapRect.mRight = this.mAreaFlags.mMapWidth
+        this.mapRect.mBottom = this.mAreaFlags.mMapWidth
 
 
         this.arabit = null
-        this.mAreaBitmap = Bitmap.createBitmap(this.mAreaFlags.mapWidth, this.mAreaFlags.mapHeight)
-        this.mPreviewBitmap = Bitmap.createBitmap(this.mAreaFlags.mapWidth >> 3, this.mAreaFlags.mapHeight>>3)
+        this.mAreaBitmap = Bitmap.createBitmap(this.mAreaFlags.mMapWidth, this.mAreaFlags.mMapHeight)
+        this.mPreviewBitmap = Bitmap.createBitmap(this.mAreaFlags.mMapWidth >> 3, this.mAreaFlags.mMapHeight>>3)
 
 
 
@@ -384,7 +384,7 @@ export class FragmentDZAreaFlags extends JFragment {
     }
 
     printAreaFlagsToBitmap(bitmap: Bitmap, valueFlagsMask: number, usageFlagsMask: number, clip?: Rect) {
-        let wSize = this.mAreaFlags.mapWidth
+        let wSize = this.mAreaFlags.mMapWidth
 
         if (!clip) {
             clip = new Rect(0,0, wSize, wSize)
@@ -469,7 +469,7 @@ export class FragmentDZAreaFlags extends JFragment {
     }
     printAreaFlagsToBitmapPreview(bitmap: Bitmap, valueFlagsMask: number, usageFlagsMask: number, clip?: Rect) {
         const offset = 3
-        let wSize = this.mAreaFlags.mapWidth >> offset
+        let wSize = this.mAreaFlags.mMapWidth >> offset
 
         if (!clip) {
             clip = new Rect(0,0, wSize , wSize)

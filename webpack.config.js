@@ -53,10 +53,12 @@ module.exports = {
     //                 mangle: {
     //                     properties: {
     //                         keep_quoted: true, // Оставить без изменений свойства в кавычках, если нужно
-    //                     }
+    //
+    //                     },
     //                 },
     //                 compress: {
-    //                     drop_console: true, // Убирает console.log для дополнительного сжатия
+    //
+    //                     // drop_console: true, // Убирает console.log для дополнительного сжатия
     //                 }
     //             }
     //         })

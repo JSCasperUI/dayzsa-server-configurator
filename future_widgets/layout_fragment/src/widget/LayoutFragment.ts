@@ -56,7 +56,7 @@ export abstract class LayoutFragment extends JFragment {
     }
 
     onCreateView(inflater, container) {
-        return new View(this.mContext,"div",{class:"split-container"});
+        return new View(this.mContext,"div",{"class":"split-container"});
     }
 
     onCreated() {
@@ -96,7 +96,7 @@ export abstract class LayoutFragment extends JFragment {
         console.log("splitPosition:",splitPosition)
         if (this.elements.length > 0){
             let lastElement = this.elements[this.elements.length-1]
-            let divider = new View(this.getContext(), "div", {class: "divider"})
+            let divider = new View(this.ctx(), "div", {"class": "divider"})
             let right = lastElement.createInstance(true)
             this.elements.push(right)
             this.getFragmentView().addView(divider)
@@ -104,12 +104,12 @@ export abstract class LayoutFragment extends JFragment {
             this.getFragmentManager().pushFragment(START_RANGE+this.elements.length,right,this.getFragmentView())
         }else{
 
-            let parent = this.getParent()
+            let parent = this.getParentFragment()
             if (parent && parent instanceof LayoutFragment &&  (parent.isType(splitType) || parent.isType(SPLIT_TYPE.UNDEF))){
                 parent.splitArea(splitType,splitPosition)
             }else if (this.contentFragment) {
 
-                let divider = new View(this.getContext(), "div", {class: "divider"})
+                let divider = new View(this.ctx(), "div", {class: "divider"})
                 this.setType(splitType)
                 // this.getFragmentManager().dropFragment(START_RANGE,this.getFragmentView()) //TODO FIX
 
@@ -124,7 +124,7 @@ export abstract class LayoutFragment extends JFragment {
                 this.getFragmentManager().pushFragment(START_RANGE+1,right,this.getFragmentView())
             }else{
 
-                (this.getParent() as LayoutFragment) .swapChild(this,splitType,splitPosition)
+                (this.getParentFragment() as LayoutFragment) .swapChild(this,splitType,splitPosition)
 
             }
         }
@@ -132,7 +132,7 @@ export abstract class LayoutFragment extends JFragment {
 
     pushContainer(fragment){
         if (this.elements.length>0) {
-            let divider = new View(this.getContext(), "div", {class: "divider"})
+            let divider = new View(this.ctx(), "div", {class: "divider"})
             this.getFragmentView().addView(divider)
             this.addResizeFunctionality(divider,SPLIT_TYPE.HORIZONTAL === this.mType)
         }
@@ -181,7 +181,7 @@ export abstract class LayoutFragment extends JFragment {
             }
 
             if (json.l){
-                newContainer.getFragmentView().node.style.flexBasis = `${json.l}%`;
+                newContainer.getFragmentView().getElement().style.flexBasis = `${json.l}%`;
             }
             if (!root)
                 container.pushContainer(newContainer)
@@ -269,16 +269,16 @@ export abstract class LayoutFragment extends JFragment {
         }
 
         console.log("activateSplitArea")
-        let splitView = new View(this.getContext(), "div", {class: sClass})
+        let splitView = new View(this.ctx(), "div", {class: sClass})
         let v = this.getFragmentView()
         this.removeInjection = () => {
-            v.node.removeEventListener('mousemove', mouseMoveHandler);
+            v.mNode.removeEventListener('mousemove', mouseMoveHandler);
             v.removeView(splitView)
         }
 
         this.injectSplit = () => {
             console.log("injectSplit")
-            v.node.addEventListener('mousemove', mouseMoveHandler);
+            v.mNode.addEventListener('mousemove', mouseMoveHandler);
             v.addView(splitView)
             // document.removeEventListener('mouseup', stopResize);
         };
@@ -309,9 +309,9 @@ export abstract class LayoutFragment extends JFragment {
             this.splitArea(type,positionAtContainer)
         }
 
-        v.node.addEventListener("mouseenter", this.injectSplit)
-        v.node.addEventListener("mouseleave", this.removeInjection)
-        v.node.addEventListener("click", this.onSplitEvent)
+        v.mNode.addEventListener("mouseenter", this.injectSplit)
+        v.mNode.addEventListener("mouseleave", this.removeInjection)
+        v.mNode.addEventListener("click", this.onSplitEvent)
         if (v.getElement().matches(':hover')) {
             this.injectSplit()
 
@@ -325,9 +325,9 @@ export abstract class LayoutFragment extends JFragment {
             this.isActiveSplitArea = false
             if (this.injectSplit) {
 
-                v.node.removeEventListener("click", this.onSplitEvent)
-                v.node.removeEventListener("mouseenter", this.injectSplit)
-                v.node.removeEventListener("mouseleave", this.removeInjection)
+                v.mNode.removeEventListener("click", this.onSplitEvent)
+                v.mNode.removeEventListener("mouseenter", this.injectSplit)
+                v.mNode.removeEventListener("mouseleave", this.removeInjection)
                 this.injectSplit = null
                 this.removeInjection = null
             }
@@ -359,14 +359,14 @@ export abstract class LayoutFragment extends JFragment {
             vars.cursor = "row-resize"
         }
         let v = this.getFragmentView()
-        divider.node.addEventListener('mousedown', (e) => {
+        divider.getElement().addEventListener('mousedown', (e) => {
             e.preventDefault();
             isResizing = true;
             startX = e[vars.clientX];
 
-            initialWidths = this.elements.map(child => child.getFragmentView().node[vars.offsetWidth]);
+            initialWidths = this.elements.map(child => child.getFragmentView().getElement()[vars.offsetWidth]);
 
-            containerWidth = v.node[vars.offsetWidth] - (this.elements.length - 1) * 3;
+            containerWidth = v.mNode[vars.offsetWidth] - (this.elements.length - 1) * 3;
             // const previousNode = divider.node.previousElementSibling;
             // const nextNode = divider.node.nextElementSibling;
 
@@ -398,8 +398,8 @@ export abstract class LayoutFragment extends JFragment {
             let rightWidthPercent = (newRightWidth / containerWidth) * 100;
 
 
-            left.node.style.flexBasis = `${leftWidthPercent}%`;
-            right.node.style.flexBasis = `${rightWidthPercent}%`;
+            left.getElement().style.flexBasis = `${leftWidthPercent}%`;
+            right.getElement().style.flexBasis = `${rightWidthPercent}%`;
         };
 
         const stopResize = () => {
