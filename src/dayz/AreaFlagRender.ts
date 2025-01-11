@@ -94,7 +94,6 @@ export class AreaFlagRender {
 
         this.mAreaLayers.colors     = ll.newArray(layers.length)
 
-
         this.mAreaLayers.maxCounts.setValue(0,18)
         this.mAreaLayers.maxCounts.setValue(1,5)
 
@@ -122,7 +121,6 @@ export class AreaFlagRender {
             for (let j = 0; j < 32; j++) {
                 colors.setValue(j,dColors[j % dColors.length])
             }
-
             this.mAreaLayers.colors.setPtr(i,colors.ptr)
         }
 
@@ -152,6 +150,7 @@ export class AreaFlagRender {
         clip.clipClamp(0,0,this.mArea.mMapWidth,this.mArea.mMapHeight)
         let al = this.mAreaLayers
         let time = Date.now()
+
         al.masks.setValue(0,masks[0])
         al.masks.setValue(1,masks[1])
 

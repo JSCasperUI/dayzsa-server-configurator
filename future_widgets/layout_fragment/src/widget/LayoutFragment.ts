@@ -102,6 +102,7 @@ export abstract class LayoutFragment extends JFragment {
             this.getFragmentView().addView(divider)
             this.addResizeFunctionality(divider,SPLIT_TYPE.HORIZONTAL === this.mType)
             this.getFragmentManager().pushFragment(START_RANGE+this.elements.length,right,this.getFragmentView())
+
         }else{
 
             let parent = this.getParentFragment()

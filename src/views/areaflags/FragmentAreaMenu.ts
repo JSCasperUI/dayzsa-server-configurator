@@ -7,7 +7,12 @@ import {AdapterAreaFlagsItems} from "@dz/adapters/AdapterAreaFlagsItems";
 import {MainActivity} from "@dz/MainActivity";
 
 export class FragmentAreaMenu extends JFragment {
+    static SPLIT_NAME = "area_menu";
+
+
     private mAdapter: AdapterAreaFlagsItems;
+
+
     onCreateView(inflater: BXMLInflater, container: View): View {
         return inflater.inflate(R.layout.area_flags.fragment_area_flag_menu);
     }
@@ -15,22 +20,17 @@ export class FragmentAreaMenu extends JFragment {
     onCreated() {
         super.onCreated();
         let list = this.byId(R.id.treeList) as RecyclerView
-        this.mAdapter = new AdapterAreaFlagsItems();
+        this.mAdapter = new AdapterAreaFlagsItems((this.getActivity() as MainActivity).mdAreaFlag,this);
         list.setAdapter(this.mAdapter)
     }
     protected onAttachSingle() {
         super.onAttachSingle();
 
         let config = (this.getActivity() as MainActivity).mBaseConfigVM;
-        config.mAreaFlagMask.observe(this,value => {
-            this.mAdapter.updateVisibleFlags(value)
-        })
-        this.mAdapter.setVisibleChange(visibleFlags => {
-            config.mAreaFlagMask.setValue(visibleFlags)
-        })
+
 
         this.mAdapter.setHoverChange(area => {
-            config.mAreaFlagHoverEvent.setValue(area)
+            // config.mAreaFlagHoverEvent.setValue(area)
         })
 
         config.mLists.observe(this,value => {

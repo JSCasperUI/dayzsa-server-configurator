@@ -1,6 +1,6 @@
-import {BaseConfig} from "@dz/model/BaseConfig";
+import {BaseConfig} from "@dz/models/BaseConfig";
 import {getPathFileName} from "@dz/space/utils";
-import {parseXMLString} from "@dz/xml/XMLTreeContent";
+import {parseXMLString} from "@dz/space/xml/XMLTreeContent";
 import {AreaFlagsFile} from "@dz/dayz/types/AreaFlagsFile";
 
 export class XMLLoader {
@@ -12,14 +12,9 @@ export class XMLLoader {
     async process(data:File,filePath:string) {
         if (filePath.endsWith(".xml")){
             let name = getPathFileName(filePath)
-
             let  node = parseXMLString(await data.text())
-            let dConfig = this.config.getConfig(node.tag)
-            if (dConfig) {
-                console.log("FOND TAG",node.tag)
-                dConfig.setValue(node)
-            }
 
+            this.config.putData(node,node.tag)
 
         }else if (filePath.endsWith(".map")){
             console.log(filePath)

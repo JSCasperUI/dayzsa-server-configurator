@@ -233,18 +233,19 @@ void drawHorizontalLine(int x1, int x2, int y, uint32_t* mBuffer, int width, int
   
 
     switch (drawMode){
-        case 0:{ // стираем бит 
-            for (int x = x1; x < x2; x++) mBuffer[x] &= ~setBit;
-            break;
-        }
-        case 1:{ //рисуем бит 
+         case 1:{ //рисуем бит 
             for (int x = x1; x < x2; x++) mBuffer[x] |= setBit;
             break;
         }
-        case 3:{ //рисуем бит и стираем другие
+        case 2:{ //рисуем бит и стираем другие
             for (int x = x1; x < x2; x++) mBuffer[x] = setBit;
             break;
         }
+        case 3:{ // стираем бит 
+            for (int x = x1; x < x2; x++) mBuffer[x] &= ~setBit;
+            break;
+        }
+        
     }
 
 }
@@ -252,6 +253,23 @@ void drawHorizontalLine(int x1, int x2, int y, uint32_t* mBuffer, int width, int
 void drawFilledCircle(int xc, int yc, int radius, uint32_t* mBuffer, int width, int height, uint32_t setBit,uint32_t drawMode) {
     int x = 0;
     int y = radius;
+    if (radius==1){
+         drawHorizontalLine(xc, xc+radius, yc, mBuffer, width, height, setBit,drawMode);
+         return;
+    }
+    if (radius==2){
+         drawHorizontalLine(xc, xc+radius, yc, mBuffer, width, height, setBit,drawMode);
+         drawHorizontalLine(xc, xc+radius, yc+1, mBuffer, width, height, setBit,drawMode);
+         return;
+    }
+    if (radius==3){
+         drawHorizontalLine(xc, xc+radius, yc, mBuffer, width, height, setBit,drawMode);
+         drawHorizontalLine(xc, xc+radius, yc+1, mBuffer, width, height, setBit,drawMode);
+         drawHorizontalLine(xc, xc+radius, yc+2, mBuffer, width, height, setBit,drawMode);
+         return;
+    }
+
+
     int d = 3 - 2 * radius;
         while (y >= x) {
             drawHorizontalLine(xc - x, xc + x, yc + y, mBuffer, width, height, setBit,drawMode);

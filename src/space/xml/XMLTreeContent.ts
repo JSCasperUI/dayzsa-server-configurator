@@ -1,12 +1,12 @@
-import {ELEMENT, EOF, HTMLParser} from "@dz/xml/HTMLParser";
+import {ELEMENT, EOF, SimpleHTMLParser} from "@dz/space/xml/HTMLParser";
 export interface BXNodeContent {
     tag:string;
     text:string|null
     children:Array<BXNodeContent>;
-    attrs:Record<string, string|number>|null,
+    attrs:Record<string, string>|null,
     line:number
 }
-export function xml2TreeContent(xmlParser:HTMLParser,node?:BXNodeContent,depth = 0):BXNodeContent{
+export function xml2TreeContent(xmlParser:SimpleHTMLParser,node?:BXNodeContent,depth = 0):BXNodeContent{
     var status = 0
 
     if (xmlParser.getDepth() === 0){
@@ -21,8 +21,6 @@ export function xml2TreeContent(xmlParser:HTMLParser,node?:BXNodeContent,depth =
             child.attrs[attribute.name] = attribute.value
         }
     }
-
-
 
     if (node!=null && content.length===0){
         node.children.push(child)
@@ -52,7 +50,6 @@ export function xml2TreeContent(xmlParser:HTMLParser,node?:BXNodeContent,depth =
 
 
 export function parseXMLString(input:string){
-    let parser = new HTMLParser()
-    parser.mInput = input
+    let parser = new SimpleHTMLParser(input)
     return xml2TreeContent(parser)
 }

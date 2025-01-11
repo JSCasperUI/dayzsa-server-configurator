@@ -1,6 +1,8 @@
 
 export interface VisibleFlags {
-    visibleValueFlagsMask:number
-    visibleUsageFlagsMask:number
-    mapImage:boolean
+    layer0:number,
+    layer1:number,
+    layer2:number,
+    layer3:number,
+    layer4:number,
 }

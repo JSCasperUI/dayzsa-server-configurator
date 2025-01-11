@@ -5,6 +5,7 @@ import {Context} from "@casperui/core/content/Context";
 import {ViewAttributes} from "@casperui/core/view/ViewAttributes";
 import {TableView} from "@dz/widgets/tableview/TableView";
 import {RecyclerView} from "@casperui/recyclerview/widget/RecyclerView";
+import {TypeTable} from "@dz/views/tables/TypeTable";
 
 
 
@@ -12,7 +13,7 @@ export async function JStartFullApp() {
     const  application = new Application()
     WidgetRegistrar.register("RecyclerView", (context: Context, tag: string, attributes: ViewAttributes)=> new RecyclerView(context,tag,attributes))
     WidgetRegistrar.register("TableView", (context: Context, tag: string, attributes: ViewAttributes)=> new TableView(context,tag,attributes))
-
+    WidgetRegistrar.register("TypeTable", (context, tag, attributes) => new TypeTable(context, tag, attributes))
 
     await application.startActivity(new MainActivity())
 

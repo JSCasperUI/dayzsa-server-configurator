@@ -1,23 +1,26 @@
-import {View} from "@casperui/core/view/View";
+import {View, ViewTag} from "@casperui/core/view/View";
 import {TableViewAdapter} from "@dz/widgets/tableview/TableViewAdapter";
 import {Context} from "@casperui/core/content/Context";
 import {R} from "@dz/R";
 import {RecyclerView} from "@casperui/recyclerview/widget/RecyclerView";
+import {ViewAttributes} from "@casperui/core/view/ViewAttributes";
 
+export type SortFunction = (data:any[],key:string,order:number) => void
 export class TableView extends View {
   visibleKeys = []
 
    sizes:number[] = []
   sort = null
     tableSizes = null
-   adapter:TableViewAdapter
+    adapter:TableViewAdapter
     recycler:RecyclerView
 
     cellFunction = null
     currentSortKey = null;
     currentSortOrder = 1; // 1 = возрастание, -1 = убывание
-    constructor(context:Context, tag, attributes) {
-        super(context, "tabll",attributes);
+    private sortFunction: SortFunction;
+    constructor(context:Context,tag?:ViewTag,attr?:ViewAttributes) {
+        super(context, "tabll",attr);
 
         this.adapter = new TableViewAdapter(context)
 
@@ -46,6 +49,10 @@ export class TableView extends View {
     setCellFunction(fn){
         this.cellFunction = fn
         this.adapter.setCellFunction(fn)
+    }
+
+    setSortFunction(fn:SortFunction){
+        this.sortFunction = fn
     }
 
     /**@private */
@@ -86,9 +93,9 @@ export class TableView extends View {
     header:string[]
     keys:string[]
     number:number[]
-    selfData:any
+    selfData:any[] = []
 
-    initTable(header, keys, sizes, visibleKeys, sort) {
+    initTable(header, keys, sizes, visibleKeys?, sort?) {
 
         this.header = header
 
@@ -191,29 +198,43 @@ export class TableView extends View {
             this.currentSortOrder = 1;
         }
 
+        if (this.sortFunction){
+            this.sortFunction(this.selfData,key.key, this.currentSortOrder);
+        }else{
+            if (this.currentSortKey.isPath){
+                this.selfData.sort((a, b) => {
+                    let valueA = this.getNestedValue(a, this.currentSortKey.path);
+                    let valueB = this.getNestedValue(b, this.currentSortKey.path);
+                    if (valueA === undefined){
+                        valueA = 0
+                    }
+                    if (valueB === undefined){
+                        valueB = 0
+                    }
 
-        if (this.currentSortKey.isPath){
-            this.selfData.sort((a, b) => {
-                let valueA = this.getNestedValue(a, this.currentSortKey.path);
-                let valueB = this.getNestedValue(b, this.currentSortKey.path);
-                if (valueA === undefined){
-                    valueA = 0
-                }
-                if (valueB === undefined){
-                    valueB = 0
-                }
+                    if (valueA < valueB) return -1 * this.currentSortOrder;
+                    if (valueA > valueB) return 1 * this.currentSortOrder;
+                    return 0;
+                });
+            }else {
+                this.selfData.sort((a, b) => {
 
-                if (valueA < valueB) return -1 * this.currentSortOrder;
-                if (valueA > valueB) return 1 * this.currentSortOrder;
-                return 0;
-            });
-        }else {
-            this.selfData.sort((a, b) => {
-                if (a[key.path] < b[key.path]) return -1 * this.currentSortOrder;
-                if (a[key.path] > b[key.path]) return 1 * this.currentSortOrder;
-                return 0;
-            });
+                    let valueA = a[key.path]
+                    let valueB = b[key.path]
+                    if (valueA === undefined){
+                        valueA = 0
+                    }
+                    if (valueB === undefined){
+                        valueB = 0
+                    }
+                    if (valueA < valueB) return -1 * this.currentSortOrder;
+                    if (valueA > valueB) return 1 * this.currentSortOrder;
+                    return 0;
+                });
+            }
         }
+
+
 
 
         this.updateHeader();

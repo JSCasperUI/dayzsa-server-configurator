@@ -1,9 +1,3 @@
-
-
-export const DEPTH = 1
-export const ELEMENT = 2
-export const EOF = 3
-
 const TAG_OPEN = '<'
 const TAG_CLOSE = '>'
 const TAG_EQ = '='
@@ -17,36 +11,30 @@ const TAG_T = '-'
 const TAG_EOF = '\0'
 function isLetterOrDigit(char) {
     const code = char.charCodeAt(0);
-    if (code >= 48 && code <= 57) return true;
-    if (code >= 65 && code <= 90) return true;
-    if (code >= 97 && code <= 122) return true;
-    return false;
+    return (
+        (code >= 48 && code <= 57) ||
+        (code >= 65 && code <= 90) ||
+        (code >= 97 && code <= 122)
+    );
 }
 function isLetter(char) {
     return /^[a-zA-Z]$/.test(char);
 }
-const EMPTY_TAG = ["area","base","br","col","embed","hr","img","input","link","meta","param","source","track","wbr"]
 
 function isEmptyChar(char){
     return char === '\n' || char === '\r'|| char === '\t'|| char === ' '
 }
-export interface PToken {
-    type: any
-    value: any,
-    line: number,
-    start:number
-}
-export interface NTag {
-    name: string
-    attributes:Record<any, any>[],
-    content:string,
-    line: number,
-}
-export class HTMLParser {
-    isInScript = false
-    currentToken = {type:0xFF.toString(),value:""} as PToken
-    mInput:string = undefined
-    position = -1
+
+export const DEPTH = 1
+export const ELEMENT = 2
+export const EOF = 3
+
+
+
+export class SimpleHTMLParser {
+    private currentToken: { type: string; value: string,line:number,start:number};
+    private mInput: any;
+    private position: number;
     symbol = '\0'
     skipNext = false
     inputStreamIndex = 0
@@ -55,12 +43,27 @@ export class HTMLParser {
     parsedTag = false
     depth = 0
     lastTag = ""
-    fullTag = {name:"",attributes:[],content:""} as NTag
+    fullTag = {name:"",attributes:[],content:"",line:0}
     decDepthOnNext = false
     line = 1
     start = 0
-    constructor() {
 
+    constructor(fileData) {
+        this.currentToken = {type:0xFF.toString(),value:"",line:0,start:0};
+        this.mInput = fileData
+        this.position = -1
+        this.symbol = '\0'
+        this.skipNext = false
+        this.inputStreamIndex = 0
+        this.skipNextToken = false
+        this.readTextContent = false
+        this.parsedTag = false
+        this.depth = 0
+        this.lastTag = ""
+        this.fullTag = {name:"",attributes:[],content:"",line: 0}
+        this.decDepthOnNext = false
+        this.line = 1
+        this.start = 0
     }
 
 
@@ -69,18 +72,20 @@ export class HTMLParser {
             this.skipNext = false
             return true
         }
-        let c:string|number = -1
+        let c = -1
         if (this.mInput.length>this.inputStreamIndex-1){
             c = this.mInput[this.inputStreamIndex++]
         }
         if (c !== -1) {
+            // @ts-ignore
             if (c === '\n') {
                 this.line++
                 this.start= -1
             }
             this.start++
             this.position++
-            this.symbol = c as string
+            // @ts-ignore
+            this.symbol = c
             return true
         } else {
             this.symbol = TAG_EOF
@@ -97,29 +102,6 @@ export class HTMLParser {
             this.currentToken.line = this.line
             this.currentToken.start = this.start
             this.currentToken.value = ""
-            if (this.isInScript) {
-                if (this.symbol === '<' && this.mInput[this.inputStreamIndex] === '/') {
-                    let tempPos = this.inputStreamIndex;
-                    let tempStr = '';
-                    while (tempPos < this.mInput.length && this.mInput[tempPos] !== '>') {
-                        tempStr += this.mInput[tempPos];
-                        tempPos++;
-                    }
-                    if (tempStr === '/script') {
-                        this.currentToken.type = TAG_OPEN;
-                        this.currentToken.value = this.symbol;
-                        this.skipNext = true;
-                        return this.currentToken;
-                    }
-                }
-                let out = this.symbol;
-                while (this.mNext() && !(this.symbol === '<' && this.mInput[this.inputStreamIndex] === '/')) {
-                    out += this.symbol;
-                }
-                this.currentToken.type = TAG_STRING;
-                this.currentToken.value = out;
-                return this.currentToken;
-            }
 
             switch (this.symbol) {
                 case TAG_OPEN:
@@ -130,19 +112,18 @@ export class HTMLParser {
                 case TAG_COLON:
                 case TAG_V:
                 case TAG_T:{
+
                     this.currentToken.type = this.symbol
                     this.currentToken.value = this.symbol.toString()
                     return this.currentToken
                 }
                 case TAG_QSTRING:{
-                    // let out = ""
-                    let start = this.position+1
+                    let out = ""
                     while (this.mNext() && this.symbol !== '"') {
-                        // out+=this.symbol
+                        out+=this.symbol
                     }
-
                     this.currentToken.type = TAG_QSTRING
-                    this.currentToken.value = this.mInput.substring(start,this.position)
+                    this.currentToken.value = out.toString()
                     return this.currentToken
                 }
                 default:{
@@ -150,8 +131,7 @@ export class HTMLParser {
                         continue
                     }
                     if (this.currentToken.type === TAG_CLOSE) {
-                        // let out = this.symbol
-                        let start = this.position
+                        let out = this.symbol
                         var e = 1
                         var p = 0
                         if (isEmptyChar(this.symbol)){
@@ -161,7 +141,7 @@ export class HTMLParser {
                             if (isEmptyChar(this.symbol)){
                                 p++
                             }
-                            // out+=this.symbol
+                            out+=this.symbol
                             e++
                         }
                         if (e === p){
@@ -170,20 +150,18 @@ export class HTMLParser {
                             continue
                         }
                         this.currentToken.type = TAG_STRING
-                        this.currentToken.value = this.mInput.substring(start,this.position)
+                        this.currentToken.value = out
                         this.skipNext = true
                         return this.currentToken
                     }else if (isLetterOrDigit(this.symbol)) {
-                        // let out = this.symbol
-                        let start = this.position
+                        let out = this.symbol
                         while (this.mNext() && (isLetterOrDigit(this.symbol) || this.symbol === '.' || this.symbol === '_' ||this.symbol === '-')) {
-                            // out+=this.symbol
+                            out+=this.symbol
                         }
                         this.currentToken.type = TAG_STRING
-                        this.currentToken.value = this.mInput.substring(start,this.position)
-                        // this.lastTag = out
+                        this.currentToken.value = out
+                        this.lastTag = out
                         this.skipNext = true
-                        // this.position--
                         return this.currentToken
                     } else {
                         continue
@@ -201,37 +179,42 @@ export class HTMLParser {
 
     skipComment() {
         let endTag = 2
+        this.nextToken()// eat -
         while (this.nextToken(true).type!== TAG_EOF) {
 
             if (this.currentToken.type === TAG_T){
                 endTag--
             }else{
                 if (this.currentToken.type === TAG_CLOSE && endTag === 0){
-
                     break
                 }
                 endTag = 2
             }
+        }
+    }
+    skipCommentSlash() {
+        while (this.nextToken().type !== TAG_OPEN) {
 
         }
     }
     skipXML() {
-        while (this.nextToken().type !== TAG_CLOSE) {}
+        while (this.nextToken().type !== TAG_CLOSE) {
+
+        }
     }
     getFullTag() {
         return this.fullTag
     }
     parseString() {
-        // let out = ""
-        // out+=this.currentToken.value
-        // if (this.nextToken().type === TAG_COLON ) {
-        //     out+=this.currentToken.type
-        //     out+=this.nextToken().value
-        // } else {
-        //     this.skipNextToken = true
-        // }
-
-        return this.currentToken.value
+        let out = ""
+        out+=this.currentToken.value
+        if (this.nextToken().type === TAG_COLON ) {
+            out+=this.currentToken.type
+            out+=this.nextToken().value
+        } else {
+            this.skipNextToken = true
+        }
+        return out
     }
     parseAttrs() {
         if (this.currentToken.type === TAG_STRING){
@@ -269,32 +252,41 @@ export class HTMLParser {
                 this.skipComment()
                 this.parse()
                 return;
-            }else if (this.currentToken.type === TAG_STRING){
-                this.skipXML()
-                this.parse()
-                return;
+            }else { // @ts-ignore
+                if (this.currentToken.type === TAG_STRING){
+                                this.skipXML()
+                                this.parse()
+                                return;
+                            }
             }
         }
         if (this.currentToken.type === TAG_SLASH) {
+
+
             if (this.nextToken().type === TAG_STRING) {
-                if (this.fullTag.name === "script") {
-                    this.isInScript = false;
-                }
+
                 this.nextToken(); // EAT >
+            }else if (this.currentToken.type === TAG_SLASH){
+                this.skipCommentSlash()
+                this.skipNextToken = true
+                this.parseTag()
+                return;
             }
             this.depth--;
             return;
         }
+
+
         if (this.currentToken.type === TAG_STRING) {
             this.depth++;
             this.parsedTag = true;
-            this.fullTag = {name: this.currentToken.value, attributes: [], content: "",line:this.currentToken.line} as NTag;
-            if (this.fullTag.name === "script") {
-                this.isInScript = false;
-            }
+            this.fullTag = {name: this.currentToken.value, attributes: [], content: "",line:this.currentToken.line};
+
+            // @ts-ignore
             while (this.nextToken().type !== TAG_CLOSE && this.currentToken.type !== TAG_SLASH) {
                 this.parseAttrs();
             }
+            // @ts-ignore
             if (this.currentToken.type === TAG_SLASH) {
                 this.nextToken(); // EAT >
                 this.decDepthOnNext = true;
@@ -315,24 +307,34 @@ export class HTMLParser {
                 this.parseTag()
                 break
             }
-            case TAG_STRING:{
+
+            default:{
                 this.parseText();
             }
         }
 
     }
     parseText() {
-        if (this.currentToken.type === TAG_STRING) {
-            this.depth++;
-            this.parsedTag = true;
-            this.fullTag = {
-                name: "#text",
-                attributes: [],
-                content: this.currentToken.value
-            } as NTag;
-            //this.nextToken()
-            this.decDepthOnNext = true
+        this.depth++;
+        this.parsedTag = true;
+
+        this.fullTag = {
+            name: "#text",
+            attributes: [],
+            content: this.currentToken.value,line: 0
+        };
+
+        if (this.currentToken.type !== TAG_STRING){
+            let stringValue = this.currentToken.value
+            while (this.nextToken().type !== TAG_OPEN) {
+                stringValue+=this.currentToken.value
+            }
+            this.fullTag.content = stringValue
+            this.skipNextToken = true
+
         }
+        this.decDepthOnNext = true
+
     }
     next() {
         this.parsedTag = false

@@ -30,6 +30,7 @@ export class BaseMapView extends JFragment {
 
 
     protected isDrawMapImage: boolean = true;
+    private mIsMouseLeftDragEnabled = true;
 
 
     onCreateView(inflater: BXMLInflater, container: View): View {
@@ -37,15 +38,15 @@ export class BaseMapView extends JFragment {
     }
 
 
-    private mWidth = 256
-    private mHeight = 256
+    protected mWidth = 256
+    protected mHeight = 256
     private mMapBitmap: Bitmap
 
     private p = new Paint()
     private mTextPaint = new Paint()
     protected mMapRect = new Rect(0, 0, 4096, 4096)
 
-    private mapMove = {
+    protected mapMove = {
         maxOffsetX: 0,
         maxOffsetY: 0,
         offsetX: -500,
@@ -59,8 +60,8 @@ export class BaseMapView extends JFragment {
         scale: 0.3,
         isDragging: false
     }
-    private dpi = 1
-    private canvasView: View
+    protected dpi = 1
+    protected canvasView: View
 
     private mCordsTextView: View
     private mMap: MapDetails = {
@@ -69,6 +70,14 @@ export class BaseMapView extends JFragment {
         mapWidth: 4096,
         mapHeight: 4096,
         scaleFactor:4096/(256 * 60)
+    }
+    setLeftMouseDrag(enabled:boolean){
+        this.mIsMouseLeftDragEnabled = enabled
+        if (enabled){
+            this.canvasView.getStyle().cursor = "grab"
+        }else{
+            this.canvasView.getStyle().cursor = ""
+        }
 
     }
 
@@ -155,22 +164,51 @@ export class BaseMapView extends JFragment {
         this.canvasView.makeSafeEvent('mousemove', (moveEvent) => {
 
         })
-        this.canvasView.makeSafeEvent('wheel', (event) => {
+        this.canvasView.makeSafeEvent('wheel', (event:WheelEvent) => {
             event.preventDefault();
             const zoomSpeed = 0.1;
             const zoom = event.deltaY < 0 ? 1 + zoomSpeed : 1 - zoomSpeed;
 
             updateNewScale(zoom)
         });
-        this.canvasView.makeSafeEvent('mousedown', (event) => {
+        this.canvasView.makeSafeEvent('mousedown', (event:MouseEvent) => {
 
 
-            this.mapMove.isDragging = true;
+
+            let oldCursor = this.canvasView.getStyle().cursor
+            let btnCode = event.button;
+
+
+            switch (btnCode) {
+                case 0:
+                    this.onMouseDown(event)
+                    this.mapMove.isDragging = this.mIsMouseLeftDragEnabled;
+                    if (this.mIsMouseLeftDragEnabled){
+                        this.canvasView.getStyle().cursor = "grabbing"
+                    }
+                    break;
+
+                case 1:
+                    console.log('Middle button clicked.');
+                    this.mapMove.isDragging = true;
+                    this.canvasView.getStyle().cursor = "grabbing"
+
+                    break;
+
+                case 2:
+                    console.log('Right button clicked.');
+                    break;
+            }
+
+
             this.mapMove.startX = event.clientX * this.dpi - this.mapMove.offsetX;
             this.mapMove.startY = event.clientY * this.dpi - this.mapMove.offsetY;
 
             document.body.style.userSelect = 'none';
             const onMouseUp = () => {
+                if (this.mapMove.isDragging){
+                    this.canvasView.getStyle().cursor = oldCursor
+                }
                 this.mapMove.isDragging = false;
 
                 document.body.style.userSelect = '';
@@ -179,6 +217,7 @@ export class BaseMapView extends JFragment {
             };
             const onMouseMove = (moveEvent) => {
                 if (this.mapMove.isDragging) {
+
                     this.mapMove.offsetX = moveEvent.clientX * this.dpi - this.mapMove.startX;
                     this.mapMove.offsetY = moveEvent.clientY * this.dpi - this.mapMove.startY;
                     this.draw();
@@ -191,6 +230,8 @@ export class BaseMapView extends JFragment {
 
 
     }
+
+    onMouseDown(event:UIEvent){}
 
 
 
@@ -237,7 +278,9 @@ export class BaseMapView extends JFragment {
 
 
     printCurrentCoordinates() {
-        this.mCordsTextView.setValue(`${this.mapMove.worldX.toFixed(4)}, ${this.mapMove.worldY.toFixed(4)}`)
+        if (this.mCordsTextView){
+            this.mCordsTextView.setValue(`${this.mapMove.worldX.toFixed(4)}, ${this.mapMove.worldY.toFixed(4)}`)
+        }
     }
 
     protected onDraw(canvas: Canvas) {

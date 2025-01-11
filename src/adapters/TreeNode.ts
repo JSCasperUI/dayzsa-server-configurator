@@ -1,7 +1,9 @@
-import {AreaFlagHoverEvents} from "@dz/model/BaseConfig";
+import {AreaFlagHoverEvents} from "@dz/models/BaseConfig";
+import {FlagMapItemSelected} from "@dz/models/ModelAreaFlag";
 
 export class TreeNode {
 
+    mFlag:FlagMapItemSelected = {layer:0,bit:0}
     title:string;
     visibleEvent:(isVisible:boolean)=>void
     mObject:any

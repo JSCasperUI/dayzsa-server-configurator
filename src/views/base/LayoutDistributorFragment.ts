@@ -2,6 +2,7 @@ import {LayoutFragment, SPLIT_TYPE} from "@casperui/layoutfragment/widget/Layout
 import {RLayoutFragment} from "@casperui/layoutfragment/widget/R";
 import {FragmentAreaMenu} from "@dz/views/areaflags/FragmentAreaMenu";
 import {FragmentAreaFlags} from "@dz/views/areaflags/FragmentAreaFlags";
+import {FragmentTypeFilteredList} from "@dz/views/ce/FragmentTypeFilteredList";
 
 
 export  class LayoutDistributorFragment extends LayoutFragment {
@@ -32,46 +33,18 @@ export  class LayoutDistributorFragment extends LayoutFragment {
         //
         if (this.meta){
             switch (this.meta.type){
-                case "area_map":{
+                case FragmentAreaFlags.SPLIT_NAME:{
                     fragment = new FragmentAreaFlags(this.getActivity())
                     break
                 }
-                case "area_menu":{
+                case FragmentAreaMenu.SPLIT_NAME:{
                     fragment = new FragmentAreaMenu(this.getActivity())
                     break
                 }
-            //     case "lamp_models":{
-            //         fragment = new LampModelsListFragment(this.getActivity())
-            //         break
-            //     }
-            //     case "cabinets_list":{
-            //         fragment = new CabinetsListFragment(this.getActivity())
-            //         break
-            //     }
-            //     case "controller_info":{
-            //         fragment = new ControllerInfoFragment(this.getActivity())
-            //         break
-            //     }
-            //
-            //
-            //
-            //     case "property":{
-            //
-            //         fragment = new PropertyFragment(this.getActivity());
-            //         break
-            //     }
-            //     case "tree":{
-            //         fragment = new TreeViewFragment(this.getActivity())
-            //         break
-            //     }
-            //     case "map":{
-            //         fragment = new MapFragment(this.getActivity())
-            //         break
-            //     }
-            //     case "socket_maker":{
-            //         fragment = new SocketMakerFragment(this.getActivity())
-            //         break
-            //     }
+                case FragmentTypeFilteredList.SPLIT_NAME:{
+                    fragment = new FragmentTypeFilteredList(this.getActivity())
+                    break
+                }
                 default:fragment = null
             }
         } else {

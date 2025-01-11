@@ -2,16 +2,18 @@ import {Adapter} from "@casperui/recyclerview/widget/Adapter";
 import {ViewHolder} from "@casperui/recyclerview/widget/ViewHolder";
 import {View} from "@casperui/core/view/View";
 import {BXNode} from "@casperui/core/utils/bxml/BXNode";
-import {BXNodeContent} from "@dz/xml/XMLTreeContent";
+import {BXNodeContent} from "@dz/space/xml/XMLTreeContent";
 import {TreeNode} from "@dz/adapters/TreeNode";
 import {R} from "@dz/R";
 import {VisibleFlags} from "@dz/dayz/types/VisibleFlags";
-import {AreaFlagHoverEvents} from "@dz/model/BaseConfig";
+import {AreaFlagHoverEvents} from "@dz/models/BaseConfig";
 import {
     DZ_DEFAULT_USAGE_COLORS,
     DZ_DEFAULT_USAGE_COLORS_DEF,
     DZ_DEFAULT_VALUE_COLORS_DEF
 } from "@dz/dayz/DZDefaultAreaFlags";
+import {ModelAreaFlag} from "@dz/models/ModelAreaFlag";
+import {ILiveManager} from "@casperui/core/live/ILiveManager";
 
 
 class TreeItem extends ViewHolder {
@@ -109,18 +111,32 @@ class TreeItem extends ViewHolder {
 const EMPTY = {usageMask: 0, valueMask: 0} as AreaFlagHoverEvents
 
 export class AdapterAreaFlagsItems extends Adapter<TreeItem> {
-    private mRawData: BXNodeContent;
     private mTreeData: TreeNode;
+    private mMapVisible = true
     private mTreeOutput: Array<TreeNode> = [];
     private selectedElement: TreeNode;
     private mVisibleFlags: VisibleFlags = {
-        visibleValueFlagsMask: 0,
-        visibleUsageFlagsMask: 0
+        layer0: 0,
+        layer1: 0,
+        layer2: 0,
+        layer3: 0,
+        layer4: 0,
     } as VisibleFlags
+    private mModelAreaFlag: ModelAreaFlag;
+
+    constructor(modelAreaFlag:ModelAreaFlag,live:ILiveManager) {
+        super();
+        this.mModelAreaFlag = modelAreaFlag
+
+        modelAreaFlag.mVisibleFlags.observe(live,value => this.updateVisibleFlags(value))
+        modelAreaFlag.mMapImageVisible.observe(live,value => {
+            this.mMapVisible = value
+            this.update()
+        })
+    }
 
 
     private onHoverChange: (area: AreaFlagHoverEvents) => void;
-    private onVisibleChange: (area: VisibleFlags) => void;
 
 
     createViewHolder(parent: View, viewType: number): TreeItem {
@@ -134,7 +150,9 @@ export class AdapterAreaFlagsItems extends Adapter<TreeItem> {
         let changeVisibleFn = (index, isVisible) => {
             let item = this.mTreeOutput[index]
             item.visibleEvent(isVisible)
-            if (this.onVisibleChange) this.onVisibleChange(this.mVisibleFlags)
+
+            this.mModelAreaFlag.mVisibleFlags.setValue(this.mVisibleFlags)
+            this.mModelAreaFlag.mMapImageVisible.setIfChanged(this.mMapVisible)
             this.onHoverChange(EMPTY)
         }
 
@@ -147,9 +165,7 @@ export class AdapterAreaFlagsItems extends Adapter<TreeItem> {
 
 
     setData(data: BXNodeContent) {
-        this.mRawData = data
         this.updateData(data)
-
     }
 
     private updateData(data: BXNodeContent) {
@@ -185,47 +201,55 @@ export class AdapterAreaFlagsItems extends Adapter<TreeItem> {
         const uColors = DZ_DEFAULT_USAGE_COLORS_DEF
         const vColors = DZ_DEFAULT_VALUE_COLORS_DEF
         this.mTreeData.addChild(new TreeNode("Image map", null, R.icons.image, (isVisible) => {
-            this.mVisibleFlags.mapImage = isVisible
-        }, ()=>this.mVisibleFlags.mapImage,"#38db53" , true))
+            this.mMapVisible = isVisible
+        }, ()=>this.mMapVisible,"#38db53" , true))
         const flags = this.mVisibleFlags
         for (const child of data.children) {
 
             switch (child.tag) {
                 case "usageflags": {
                     let treeUsageFlags = new TreeNode("Usage Flags", null, R.icons.ic_usage_flags, (isVisible) => {
-                        this.mVisibleFlags.visibleUsageFlagsMask = isVisible ? 0xFFFFFFFF : 0
-                    },                   () => flags.visibleUsageFlagsMask != 0,null, true)
+                        this.mVisibleFlags.layer0 = isVisible ? 0xFFFFFFFF : 0
+                    },                   () => flags.layer0 != 0,null, true)
                     treeUsageFlags.isExpanded = true
 
                     this.mTreeData.addChild(treeUsageFlags)
                     for (let j = 0; j < child.children.length; j++) {
                         let usage = child.children[j]
                         const mask = (1 << j)
-                        treeUsageFlags.addChild(new TreeNode(
+                        let node = new TreeNode(
                             usage.attrs.name as string,
                             null,
                             R.icons.ic_usage_flags,
                             (isVisible) => {
-                                flags.visibleUsageFlagsMask ^= mask
+                                flags.layer0 ^= mask
                             },
-                            () => (flags.visibleUsageFlagsMask & mask) != 0,
+                            () => (flags.layer0 & mask) != 0,
                             uColors[j % uColors.length],
-                            true))
+                            true)
+
+                        node.mFlag.layer = 0
+                        node.mFlag.bit = j
+                        treeUsageFlags.addChild(node)
                     }
                     break
                 }
                 case "valueflags": {
                     let nodeValueFlags = new TreeNode("Value Flags", null, R.icons.ic_value_flags, (isVisible) => {
-                        this.mVisibleFlags.visibleValueFlagsMask = isVisible ? 0xFF : 0
-                    }, () => flags.visibleValueFlagsMask != 0,null, true)
+                        this.mVisibleFlags.layer1 = isVisible ? 0xFFFFFFFF : 0
+                    }, () => flags.layer1 != 0,null, true)
                     nodeValueFlags.isExpanded = true
                     this.mTreeData.addChild(nodeValueFlags)
                     for (let j = 0; j < child.children.length; j++) {
                         let usage = child.children[j]
                         const mask = (1 << j)
-                        nodeValueFlags.addChild(new TreeNode(usage.attrs.name as string, null, R.icons.ic_value_flags, (isVisible) => {
-                            this.mVisibleFlags.visibleValueFlagsMask ^= mask
-                        },   () => (flags.visibleValueFlagsMask & mask) != 0, vColors[j % vColors.length], true))
+                        let node = new TreeNode(usage.attrs.name as string, null, R.icons.ic_value_flags, (isVisible) => {
+                            this.mVisibleFlags.layer1 ^= mask
+                        },   () => (flags.layer1 & mask) != 0, vColors[j % vColors.length], true)
+
+                        node.mFlag.layer = 1
+                        node.mFlag.bit = j
+                        nodeValueFlags.addChild(node)
                     }
                     break
                 }
@@ -256,15 +280,15 @@ export class AdapterAreaFlagsItems extends Adapter<TreeItem> {
             this.notifyItemChanged(index)
         }
 
+
+        this.mModelAreaFlag.mFlagMapItemSelected.setValue(this.selectedElement.mFlag)
+
     }
 
     setHoverChange(fn: (area: AreaFlagHoverEvents) => void) {
         this.onHoverChange = fn
     }
 
-    setVisibleChange(fn: (area: VisibleFlags) => void) {
-        this.onVisibleChange = fn
-    }
 
 
     onBindViewHolder(holder: TreeItem, position: number): void {
@@ -310,9 +334,12 @@ export class AdapterAreaFlagsItems extends Adapter<TreeItem> {
 
     }
 
-    updateVisibleFlags(value: VisibleFlags) {
-        this.mVisibleFlags = value
+    update(){
         this.updateOutput()
         this.notifyDataSetChanged()
+    }
+    updateVisibleFlags(value: VisibleFlags) {
+        this.mVisibleFlags = value
+        this.update()
     }
 }
