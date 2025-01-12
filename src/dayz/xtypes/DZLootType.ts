@@ -1,4 +1,5 @@
 import {DZType} from "@dz/dayz/xtypes/DZType";
+import {BXNodeContent} from "@dz/space/xml/XMLTreeContent";
 
 
 export class DZLootType extends DZType {
@@ -74,7 +75,39 @@ export class DZLootType extends DZType {
 
     }
 
-    serialize() {
+
+
+    serialize():BXNodeContent {
+        let node = {tag:"type",attrs:{name:this.name},children:[]} as BXNodeContent
+        node.children.push({tag:"nominal",text:this.nominal.toString()} as BXNodeContent)
+        node.children.push({tag:"lifetime",text:this.lifetime.toString()} as BXNodeContent)
+        node.children.push({tag:"restock",text:this.restock.toString()} as BXNodeContent)
+        node.children.push({tag:"min",text:this.min.toString()} as BXNodeContent)
+        node.children.push({tag:"quantmin",text:this.quantmin.toString()} as BXNodeContent)
+        node.children.push({tag:"quantmax",text:this.quantmax.toString()} as BXNodeContent)
+        node.children.push({tag:"cost",text:this.cost.toString()} as BXNodeContent)
+
+
+        node.children.push({tag:"category",text:null,attrs:{name:this.category},children:[]} as BXNodeContent)
+        if (this.tag){
+            node.children.push({tag:"tag",text:null,attrs:{name:this.tag},children:[]} as BXNodeContent)
+        }
+
+        let flags = {}
+        for (const flagsKey of Object.keys(this.flags)) {
+            flags[flagsKey] = this.flags[flagsKey].toString()
+        }
+        node.children.push({tag:"flags",text:null,attrs:flags,children:[]} as BXNodeContent)
+
+
+        for (const val of this.value) {
+            node.children.push({tag:"value",text:null,attrs:{name:val},children:[]} as BXNodeContent)
+        }
+        for (const val of this.usage) {
+            node.children.push({tag:"usage",text:null,attrs:{name:val},children:[]} as BXNodeContent)
+        }
+
+        return node
 
     }
 

@@ -5,11 +5,11 @@ import {R} from "@dz/R";
 import {MainActivity} from "@dz/MainActivity";
 import {CheckBoxBlock} from "@dz/widgets/forms/CheckBoxBlock";
 
-export class FragmentDZLootTypeForm extends JFragment {
+export class FragmentDZLootTypeFilter extends JFragment {
 
-    static SPLIT_NAME = "FragmentDZLootTypeForm";
+    static SPLIT_NAME = "FragmentDZLootTypeFilter";
     onCreateView(inflater: BXMLInflater, container: View): View {
-        return inflater.inflate(R.layout.ce.types.edit.type_edit);
+        return inflater.inflate(R.layout.ce.types.filter);
     }
 
     private mValueFlagViewMap= new Map<string,CheckBoxBlock>();
@@ -17,7 +17,6 @@ export class FragmentDZLootTypeForm extends JFragment {
 
     protected onAttachSingle() {
         let edit_name = this.byId(R.id.edit_name);
-        let edit_tag = this.byId(R.id.edit_tag);
         let edit_nominal = this.byId(R.id.edit_nominal);
         let edit_lifetime = this.byId(R.id.edit_lifetime);
         let edit_restock = this.byId(R.id.edit_restock);
@@ -25,7 +24,6 @@ export class FragmentDZLootTypeForm extends JFragment {
         let edit_quantmin = this.byId(R.id.edit_quantmin);
         let edit_quantmax = this.byId(R.id.edit_quantmax);
         let edit_cost = this.byId(R.id.edit_cost);
-        let edit_category = this.byId(R.id.edit_category);
 
 
 
@@ -40,6 +38,8 @@ export class FragmentDZLootTypeForm extends JFragment {
 
         let block_value_flags = this.byId(R.id.block_value_flags);
         let block_usage_flags = this.byId(R.id.block_usage_flags);
+        let block_categories = this.byId(R.id.block_categories);
+        let block_tags = this.byId(R.id.block_tags);
 
 
         let config = (this.ctx() as MainActivity).mBaseConfigVM
@@ -73,30 +73,23 @@ export class FragmentDZLootTypeForm extends JFragment {
             }
         })
         config.mConfigLimitsDefinition.mCategories.observe(this,(categories)=> {
-            edit_category.removeAllViews()
-            let view = new View(this.ctx(),"option")
-            view.setValue("")
-            view.setTextContent("No category")
-            edit_category.addView(view)
+            block_categories.removeAllViews()
             for (const category of categories){
-                let view = new View(this.ctx(),"option")
-                view.setValue(category.name)
-                view.setTextContent(category.name)
-                edit_category.addView(view)
+                let view = inflater.inflate(R.layout.ce.types.edit.check_input);
+                let checkbox = view.byId(R.id.checkbox) as CheckBoxBlock
+                checkbox.setTitle(category.name)
+                block_categories.addView(view)
             }
         })
 
         config.mConfigLimitsDefinition.mTags.observe(this,(tags)=> {
-            edit_tag.removeAllViews()
-            let view = new View(this.ctx(),"option")
-            view.setValue("")
-            view.setTextContent("No tag")
-            edit_tag.addView(view)
+            block_tags.removeAllViews()
+
             for (const tag of tags){
-                let view = new View(this.ctx(),"option")
-                view.setValue(tag.name)
-                view.setTextContent(tag.name)
-                edit_tag.addView(view)
+                let view = inflater.inflate(R.layout.ce.types.edit.check_input);
+                let checkbox = view.byId(R.id.checkbox) as CheckBoxBlock
+                checkbox.setTitle(tag.name)
+                block_tags.addView(view)
             }
         })
 
@@ -113,8 +106,6 @@ export class FragmentDZLootTypeForm extends JFragment {
             edit_quantmin.setSafeValue(item.quantmin)
             edit_quantmax.setSafeValue(item.quantmax)
             edit_cost.setSafeValue(item.cost)
-            edit_category.setSafeValue(item.category)
-            edit_tag.setSafeValue(item.tag)
 
 
             cb_count_in_hoarder.setBoolValue(item.flags.count_in_hoarder !=0 )

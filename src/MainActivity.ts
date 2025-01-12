@@ -10,6 +10,7 @@ import {FragmentAreaFlags} from "@dz/views/areaflags/FragmentAreaFlags";
 import {FragmentTypeFilteredList} from "@dz/views/ce/FragmentTypeFilteredList";
 import {FragmentAreaFlagsSection} from "@dz/views/areaflags/FragmentAreaFlagsSection";
 import {FragmentCELootEditSection} from "@dz/views/ce/FragmentCELootEditSection";
+import {SyncSelector} from "@dz/models/SyncSelector";
 
 
 export class MainActivity extends Activity {
@@ -18,6 +19,9 @@ export class MainActivity extends Activity {
     mdAreaFlag = new ModelAreaFlag()
 
     mJoinConfigVM: BaseConfig = new BaseConfig();
+
+
+    mSyncSelector = new SyncSelector()
     private layoutFragment: LayoutDistributorFragment;
 
     constructor() {

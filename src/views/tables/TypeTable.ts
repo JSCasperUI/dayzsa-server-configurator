@@ -26,6 +26,8 @@ export class TypeTable extends TableView {
                     return item.quantmax
                 case "nominal":
                     return item.nominal
+                case "tag":
+                    return item.tag
                 case "category":
                     if (item.category){
                         return item.category
@@ -39,9 +41,9 @@ export class TypeTable extends TableView {
 
     onViewChildInflated() {
         super.onViewChildInflated();
-        let headers = ["Name", "Category","Nom","QMn","QMx"]
-        let keys = ["name","category", "nominal","quantmin","quantmax"]
-        let sizes = [200,100, 50,50,50]
+        let headers = ["Name", "Category","Nom","QMn","QMx","Tag"]
+        let keys = ["name","category", "nominal","quantmin","quantmax","tag"]
+        let sizes = [0,80, 50,50,50,80]
 
         this.initTable(
             headers,

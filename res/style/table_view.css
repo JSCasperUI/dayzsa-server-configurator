@@ -5,11 +5,18 @@
 }
 
 .sort_icon {
-    width: 4px;
-    height: 9px;
+    width: 6px;
+    height: 13px;
     float: left;
-    margin-top: 4px;
+    margin-top: 3px;
     margin-right: 5px;
+}
+.wgt_header {
+    height: 30px;
+    background-color: #252525 !important;
+    color: #FFF;
+    overflow: hidden;
+    font-size: 16px;
 }
 
 .wgt_table_view_row {
@@ -19,6 +26,9 @@
     gap: 2px;
     align-items: center;
     cursor: pointer;
+}
+.wgt_table_view_header_item:hover {
+    color: #0a84ff;
 }
 
 .wgt_table_view_row:hover {
@@ -45,8 +55,8 @@
 }
 
 .sm_table trm {
-    font-size: 14px;
-    height: 20px;
+    font-size: 16px;
+    height: 26px;
 }
 
 .sm_table trm > div:first-child {

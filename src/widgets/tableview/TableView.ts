@@ -222,10 +222,12 @@ export class TableView extends View {
                     let valueA = a[key.path]
                     let valueB = b[key.path]
                     if (valueA === undefined){
-                        valueA = 0
+                        valueA = 1
+                        valueB = 0
                     }
                     if (valueB === undefined){
-                        valueB = 0
+                        valueB = 1
+                        valueA = 0
                     }
                     if (valueA < valueB) return -1 * this.currentSortOrder;
                     if (valueA > valueB) return 1 * this.currentSortOrder;

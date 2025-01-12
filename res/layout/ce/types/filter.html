@@ -1,0 +1,102 @@
+<div class="fragment_container" >
+    <div class="fc_header">
+        <div class="fts_block">
+            <i class="fts_icon" id="icon"></i>
+            <i class="fts_arrow" id="icon_arrow"></i>
+        </div>
+    </div>
+    <div class="fc_content scrollable">
+        <div class="form_content">
+            <h3>Фильтр</h3>
+        </div>
+
+        <div class="form_content grid_blocks sm_1">
+            <div class="form_input_block">
+                <label class="input_label tooltip" aria-label="Name">Name</label>
+                <input id="edit_name" class="input_v"/>
+            </div>
+
+            <div class="form_input_block">
+                <label class="input_label tooltip" aria-label="Determines the maximum number of an item">Nominal</label>
+                <input id="edit_nominal" type="number" min="-1" max="999999" class="input_v"/>
+            </div>
+
+            <div class="form_input_block">
+                <label class="input_label tooltip" aria-label="">Life Time</label>
+                <input id="edit_lifetime" type="number" min="-1" max="999999" class="input_v"/>
+            </div>
+            <div class="form_input_block">
+                <label class="input_label tooltip" aria-label="">Restock</label>
+                <input id="edit_restock" type="number" min="-1" max="999999" class="input_v"/>
+            </div>
+            <div class="form_input_block">
+                <label class="input_label tooltip" aria-label="">min</label>
+                <input id="edit_min" type="number" min="-1" max="999999" class="input_v"/>
+            </div>
+            <div class="form_input_block">
+                <label class="input_label tooltip" aria-label="">Quant min</label>
+                <input id="edit_quantmin" type="number" min="-1" max="999999" class="input_v"/>
+            </div>
+            <div class="form_input_block">
+                <label class="input_label tooltip" aria-label="">Quant max</label>
+                <input id="edit_quantmax" type="number" min="-1" max="999999" class="input_v"/>
+            </div>
+            <div class="form_input_block">
+                <label class="input_label tooltip" type="number" min="-1" max="999999" aria-label="">Cost</label>
+                <input id="edit_cost" class="input_v"/>
+            </div>
+
+        </div>
+
+
+        <div class="form_content">
+            <GroupBlock title="Категории">
+                <div class="grid_blocks sm_1" id="block_categories">
+                </div>
+            </GroupBlock>
+            <GroupBlock title="Флаги">
+                <div class="grid_blocks">
+                    <div class="form_input_block">
+                        <CheckBoxBlock id="cb_count_in_cargo" title="Count in cargo"></CheckBoxBlock>
+                    </div>
+                    <div class="form_input_block">
+                        <CheckBoxBlock id="cb_count_in_hoarder" title="Count in hoarder"></CheckBoxBlock>
+                    </div>
+                    <div class="form_input_block">
+                        <CheckBoxBlock id="cb_count_in_map" title="Count in map"></CheckBoxBlock>
+                    </div>
+                    <div class="form_input_block">
+                        <CheckBoxBlock id="cb_count_in_player" title="Count in player"></CheckBoxBlock>
+                    </div>
+                    <div class="form_input_block">
+                        <CheckBoxBlock id="cb_crafted" title="Crafted"></CheckBoxBlock>
+                    </div>
+                    <div class="form_input_block">
+                        <CheckBoxBlock id="cb_deloot" title="Deloot"></CheckBoxBlock>
+                    </div>
+
+                </div>
+            </GroupBlock>
+        </div>
+        <div class="form_content">
+            <GroupBlock title="Value flags">
+                <div class="grid_blocks sm_1" id="block_value_flags">
+
+                </div>
+            </GroupBlock>
+
+            <GroupBlock title="Usage flags">
+                <div class="grid_blocks sm_1" id="block_usage_flags">
+                </div>
+            </GroupBlock>
+            <GroupBlock title="Теги">
+                <div class="grid_blocks sm_1" id="block_tags">
+                </div>
+            </GroupBlock>
+        </div>
+
+
+    </div>
+</div>
+
+

@@ -1,10 +1,10 @@
 import {ELEMENT, EOF, SimpleHTMLParser} from "@dz/space/xml/HTMLParser";
 export interface BXNodeContent {
     tag:string;
-    text:string|null
-    children:Array<BXNodeContent>;
+    text?:string|null
     attrs:Record<string, string>|null,
-    line:number
+    children:Array<BXNodeContent>;
+    line?:number
 }
 export function xml2TreeContent(xmlParser:SimpleHTMLParser,node?:BXNodeContent,depth = 0):BXNodeContent{
     var status = 0

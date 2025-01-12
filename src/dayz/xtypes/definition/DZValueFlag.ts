@@ -1,7 +1,7 @@
 import {DZType} from "@dz/dayz/xtypes/DZType";
 
 
-export  class DZCategory extends DZType {
+export class DZValueFlag extends DZType {
     name: string = "DZ Category";
 
     constructor(name?: string) {
@@ -14,6 +14,7 @@ export  class DZCategory extends DZType {
     }
 
     serialize() {
+
         this.getNode().attrs.name = this.name;
 
     }

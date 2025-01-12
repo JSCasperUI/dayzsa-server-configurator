@@ -6,6 +6,7 @@ import {MapInfo} from "@dz/dayz/types/MapInfo";
 import {AreaFlagsFile} from "@dz/dayz/types/AreaFlagsFile";
 import {VisibleFlags} from "@dz/dayz/types/VisibleFlags";
 import {DZLootType} from "@dz/dayz/xtypes/DZLootType";
+import {ConfigLimitsDefinition} from "@dz/models/ConfigLimitsDefinition";
 
 export interface AreaFlagHoverEvents {
     valueMask: number
@@ -16,7 +17,12 @@ const EMPTY = {} as BXNodeContent
 
 export class BaseConfig extends ViewModel {
 
+
+    mConfigLimitsDefinition = new ConfigLimitsDefinition()
+
     mAreaFlagBinary: LiveData<AreaFlagsFile> = new LiveData<AreaFlagsFile>(null)
+
+
 
 
     // db
@@ -52,6 +58,13 @@ export class BaseConfig extends ViewModel {
     mLists: LiveData<BXNodeContent> = new LiveData<BXNodeContent>(EMPTY)
 
 
+
+
+
+
+
+
+
     putData(content: BXNodeContent, codeName: string) {
         switch (codeName) {
             case DZConfigTypes.TYPES:
@@ -63,10 +76,13 @@ export class BaseConfig extends ViewModel {
             case DZConfigTypes.MESSAGES:
                 return this.mMessages.setValue(content)
             case DZConfigTypes.LISTS:
-                return this.mLists.setValue(content)
+                console.log(this.mConfigLimitsDefinition)
+
+                return this.mConfigLimitsDefinition.deserialize(content)
         }
         return null
     }
+
 
 
     inflateTypes(content: BXNodeContent) {

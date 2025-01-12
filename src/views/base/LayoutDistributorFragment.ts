@@ -3,6 +3,9 @@ import {RLayoutFragment} from "@casperui/layoutfragment/widget/R";
 import {FragmentAreaMenu} from "@dz/views/areaflags/FragmentAreaMenu";
 import {FragmentAreaFlags} from "@dz/views/areaflags/FragmentAreaFlags";
 import {FragmentTypeFilteredList} from "@dz/views/ce/FragmentTypeFilteredList";
+import {FragmentDZLootTypeForm} from "@dz/views/ce/FragmentDZLootTypeForm";
+import {FragmentDZLootTypeFilter} from "@dz/views/ce/FragmentDZLootTypeFilter";
+import {FragmentDZLootTypeXml} from "@dz/views/ce/FragmentDZLootTypeXml";
 
 
 export  class LayoutDistributorFragment extends LayoutFragment {
@@ -31,6 +34,7 @@ export  class LayoutDistributorFragment extends LayoutFragment {
         }
         let fragment
         //
+
         if (this.meta){
             switch (this.meta.type){
                 case FragmentAreaFlags.SPLIT_NAME:{
@@ -45,6 +49,21 @@ export  class LayoutDistributorFragment extends LayoutFragment {
                     fragment = new FragmentTypeFilteredList(this.getActivity())
                     break
                 }
+
+
+                case FragmentDZLootTypeForm.SPLIT_NAME:{
+                    fragment = new FragmentDZLootTypeForm(this.getActivity())
+                    break
+                }
+                case FragmentDZLootTypeFilter.SPLIT_NAME:{
+                    fragment = new FragmentDZLootTypeFilter(this.getActivity())
+                    break
+                }
+                case FragmentDZLootTypeXml.SPLIT_NAME:{
+                    fragment = new FragmentDZLootTypeXml(this.getActivity())
+                    break
+                }
+
                 default:fragment = null
             }
         } else {

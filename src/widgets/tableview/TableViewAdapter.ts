@@ -146,7 +146,7 @@ export class TableViewAdapter extends Adapter<DynamicHolder> {
     clickByIndex(index){
         let newSelectedElement = this.data[index][this.activationField]
         if (this.selectedElement !== newSelectedElement){
-            if (this.mItemSelect) this.mItemSelect(newSelectedElement)
+            if (this.mItemSelect) this.mItemSelect(newSelectedElement,this.data[index])
         }
         this.selectByIndex(index)
     }

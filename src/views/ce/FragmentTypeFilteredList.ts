@@ -20,7 +20,7 @@ export class FragmentTypeFilteredList extends JFragment {
 
     }
     onAttachSingle(){
-
+        let sync = (this.ctx() as MainActivity).mSyncSelector
         let table = this.byId(R.id.table) as TypeTable
 
         table.getAdapter().setMouseInEvent((idx,module)=>{
@@ -30,7 +30,8 @@ export class FragmentTypeFilteredList extends JFragment {
         table.getAdapter().setMouseOutEvent((_id)=>{
             // this.sync.hoverModule.updateAttribute("_id",null)
         })
-        table.getAdapter().setSelectEvent((_id)=>{
+        table.getAdapter().setSelectEvent((_id,item)=>{
+            sync.mLootTypeSelect.setValue(item)
             // this.sync.selectElement.select(_id,SE_TYPES.CABINET,this)
         })
         table.getAdapter().setOnDoubleClickEvent((idx,cab)=>{
