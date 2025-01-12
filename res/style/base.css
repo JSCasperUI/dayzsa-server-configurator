@@ -272,6 +272,7 @@ border-bottom-left-radius: 0;
     padding: 7px 19px;
     color: #ffffff;
     display: block;
+    min-width: 180px;
 }
 .fixed-top {
     position: fixed;
@@ -429,7 +430,7 @@ i > svg {
 
 .fc_content {
     margin-top: 30px;
-    overflow: auto;
+    height: 100%;
 }
 .fragment_container {
     height: 100%;

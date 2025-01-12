@@ -86,6 +86,7 @@ export class BaseMapView extends JFragment {
         let oldWidth = this.mCanvas.getCanvasWidth();
         let oldHeight = this.mCanvas.getCanvasHeight();
 
+        console.log("RESIZE ",oldWidth,oldHeight)
         this.canvasView.getElement().style.imageRendering = "pixelated"
         let bRect = this.getFragmentView().getElement().getBoundingClientRect()
 

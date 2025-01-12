@@ -41,7 +41,7 @@ export class TypeTable extends TableView {
         super.onViewChildInflated();
         let headers = ["Name", "Category","Nom","QMn","QMx"]
         let keys = ["name","category", "nominal","quantmin","quantmax"]
-        let sizes = [0,100, 50,50,50]
+        let sizes = [200,100, 50,50,50]
 
         this.initTable(
             headers,

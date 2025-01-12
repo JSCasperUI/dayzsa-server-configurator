@@ -29,29 +29,11 @@ export class FragmentCELootEditSection extends JFragment {
             type: 1,
             child: [
                 {
-                    l: 20,
+                    l: 35,
                     type: 0,
                     meta: {type: FragmentTypeFilteredList.SPLIT_NAME}
                 },
-                {type: 0, l: 65, meta: {type: "area_map"}},
-                {
-                    type: 2,
-                    l: 20,
-                    child: [
-                        {
-                            l: 50,
-                            type: 0,
-                            meta: {type: "property"}
-                        },
-                        {
-                            type: 1,
-                            l: 50,
-                            child: [
-                                {type: 0, meta: {type: "tree"}},
-                            ]
-                        }
-                    ]
-                },
+                {type: 0, l: 65, meta: {type: "sdfgsdfg"}}
             ]
         })
     }

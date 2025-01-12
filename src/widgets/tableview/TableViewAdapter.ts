@@ -20,9 +20,12 @@ class DynamicHolder extends ViewHolder {
             let style = `flex-basis: ${size};`
             if (size.endsWith("px"))
                 style+="flex-shrink: 0;"
-            let view = new View(this.mHolder.ctx(),"div",{style:style})
 
-            this.cells.push(view)
+            // style = `width:${size};max-width:${size};`
+            let view = new View(this.mHolder.ctx(),"div",{style:style})
+            let textNode = new View(view.ctx(),"#t");
+            view.addView(textNode)
+            this.cells.push(textNode)
             this.mHolder.addView(view)
         }
     }
@@ -173,7 +176,7 @@ export class TableViewAdapter extends Adapter<DynamicHolder> {
      * @param {DynamicHolder} holder
      * @param {number} position
      */
-    onBindViewHolder(holder, position) {
+    onBindViewHolder(holder:DynamicHolder, position) {
         for (let i = 0; i < this.cellNames.length; i++) {
             let data
             if (this.cellFunction){
@@ -185,7 +188,7 @@ export class TableViewAdapter extends Adapter<DynamicHolder> {
                     data = this.data[position][this.cellNames[i].key]
                 }
             }
-            holder.getCell(i).setTextContent(data)
+            holder.getCell(i).mNode.nodeValue = data //.setTextContent(data)
         }
         holder.activate(this.data[position][this.activationField] === this.selectedElement)
 
