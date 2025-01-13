@@ -6,6 +6,9 @@ export interface BXNodeContent {
     children:Array<BXNodeContent>;
     line?:number
 }
+
+
+
 export function xml2TreeContent(xmlParser:SimpleHTMLParser,node?:BXNodeContent,depth = 0):BXNodeContent{
     var status = 0
 

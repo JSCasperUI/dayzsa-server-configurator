@@ -37,6 +37,71 @@ export function BXNodeToXml(obj: BXNodeContent, skipRoot: boolean = false): stri
     buildXml(obj);
     return xml;
 }
+export function highlightXml(xml, format = true) {
+    function addIndentation(depth) {
+        return format ? '&nbsp;'.repeat(depth * 4) : '';
+    }
+
+    // Основная логика подсветки
+    function processXml(line, depth = 0) {
+        return line
+            .replace(
+                /(<\/?)([a-zA-Z0-9_-]+)(\s[^<>]*)?(\/?>)/g, // Поиск тегов
+                function (match, open, tagName, attrs = '', close) {
+
+
+                    open = open.replace(/</g, '&lt;') // Экранирование угловых скобок
+                    close = close.replace(/>/g, '&gt;') // Экранирование угловых скобок;
+                    const highlightedAttrs = attrs.replace(
+                        /(\w+)="(.*?)"/g, // Поиск атрибутов
+                        `<span class="a">$1</span>=<span class="s">&quot;$2&quot;</span>`
+                    );
+
+                    // Форматирование с переносами строк и отступами
+                    const lineBreak = format ? '<br>' : '';
+                    const indentation = addIndentation(depth);
+
+                    if (close.includes('/')) {
+                        return `${lineBreak}${indentation}${open}<span class="t">${tagName}</span>${highlightedAttrs}${close}`;
+                    }
+
+                    if (open.includes('/')) {
+                        return `${lineBreak}${indentation}${open}<span class="t">${tagName}${close}</span>`;
+                    }
+
+                    return `${lineBreak}${indentation}${open}<span class="t">${tagName}</span>${highlightedAttrs}${close}`;
+                }
+            )
+            .replace(
+                /(&gt;)([^<&]+?)(&lt;)/g, // Поиск текста между тегами
+                function (_, open, text, close) {
+                    const lineBreak = format ? '<br>' : '';
+                    const indentation = addIndentation(depth + 1);
+                    return `${open}${lineBreak}${indentation}<span class="text">${text.trim()}</span>${lineBreak}${close}`;
+                }
+            )
+    }
+
+    let formattedXml = '';
+    const lines = xml.split(/(?=<)/g); // Разделение по тегам
+    let depth = 0;
+    for (let line of lines) {
+        line = line.trim();
+        if (!line) continue;
+
+        if (/^<\//.test(line)) {
+            depth--;
+        }
+
+        formattedXml += processXml(line, depth);
+        if (/^<[^/!?].*>/.test(line) && !/<\/.*?>/.test(line)) {
+            depth++;
+        }
+    }
+    console.log(formattedXml)
+    return formattedXml;
+}
+
 
 export function BXNodeToHighlightedHtml(obj: BXNodeContent, skipRoot: boolean = false): string {
     let html = '';

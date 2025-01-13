@@ -473,6 +473,9 @@ i > svg {
     text-align: center;
     line-height: 32px;
     margin-right: 30px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .fts_arrow {
@@ -497,6 +500,8 @@ i > svg {
 .xml_code{
     background: #1e1f22;
     color: #bababa;
+    font-family: monospace;
+    font-size: 17px;
 }
 .xml_code .t {
     color: #d5b778;

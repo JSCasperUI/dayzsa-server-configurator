@@ -4,7 +4,7 @@ import {View} from "@casperui/core/view/View";
 import {R} from "@dz/R";
 import {MainActivity} from "@dz/MainActivity";
 import {CheckBoxBlock} from "@dz/widgets/forms/CheckBoxBlock";
-import {BXNodeToHighlightedHtml, BXNodeToXml} from "@dz/space/xml/BXNodeToXml";
+import {BXNodeToHighlightedHtml, BXNodeToXml, highlightXml} from "@dz/space/xml/BXNodeToXml";
 
 export class FragmentDZLootTypeXml extends JFragment {
 
